@@ -7208,7 +7208,8 @@ static void Cmd_switchineffects(void)
     {
         for (i = 0; i < gBattlersCount; i++)
         {
-            if (IsBattlerAlive(i) && !IsNeutralizingGasBannedAbility(gBattleMons[i].ability))
+            if (DoesBattlerHaveAbilityShield(i)) continue;
+            if (IsBattlerAlive(i) && !IsUnsuppressableAbility(gBattleMons[i].ability))
             {
                 UpdateAbilityStateIndicesForNewAbility(i, ABILITY_NONE);
             }
@@ -8788,6 +8789,7 @@ static void Cmd_various(void)
             gBattlescriptCurrInstr += 8;
         return;
     case VARIOUS_TRACE_ABILITY:
+        if (DoesBattlerHaveAbilityShield(gActiveBattler)) break;
         UpdateAbilityStateIndicesForNewAbility(gActiveBattler, gBattleStruct->tracedAbility[gActiveBattler]);
         gBattleMons[gActiveBattler].ability = gBattleStruct->tracedAbility[gActiveBattler];
         RecordAbilityBattle(gActiveBattler, gBattleMons[gActiveBattler].ability);
@@ -9260,21 +9262,8 @@ static void Cmd_various(void)
         if (IsBattlerAlive(gBattlerAbility)
             && (i == ABILITY_RECEIVER || i == ABILITY_POWER_OF_ALCHEMY))
         {
-            switch (gBattleMons[gActiveBattler].ability)
-            { // Can't copy these abilities.
-            case ABILITY_POWER_OF_ALCHEMY:  case ABILITY_RECEIVER:
-            case ABILITY_FORECAST:          case ABILITY_MULTITYPE:
-            case ABILITY_FLOWER_GIFT:       case ABILITY_ILLUSION:
-            case ABILITY_WONDER_GUARD:      case ABILITY_ZEN_MODE:
-            case ABILITY_STANCE_CHANGE:     case ABILITY_IMPOSTER:
-            case ABILITY_POWER_CONSTRUCT:   case ABILITY_BATTLE_BOND:
-            case ABILITY_SCHOOLING:         case ABILITY_COMATOSE:
-            case ABILITY_SHIELDS_DOWN:      case ABILITY_DISGUISE:
-            case ABILITY_RKS_SYSTEM:        case ABILITY_TRACE:
-            case ABILITY_AS_ONE_ICE_RIDER:  case ABILITY_AS_ONE_SHADOW_RIDER:
-            case ABILITY_ZERO_TO_HERO:
-                break;
-            default:
+            if (IsRolePlayBannedAbility(gBattleMons[gActiveBattler].ability))
+            {
                 gBattleStruct->tracedAbility[gBattlerAbility] = gBattleMons[gActiveBattler].ability; // re-using the variable for trace
                 gBattleScripting.battler = gActiveBattler;
                 BattleScriptPush(gBattlescriptCurrInstr + 3);
@@ -9368,7 +9357,8 @@ static void Cmd_various(void)
         return;
     case VARIOUS_SET_SIMPLE_BEAM:
         if (IsEntrainmentTargetOrSimpleBeamBannedAbility(gBattleMons[gBattlerTarget].ability)
-            || gBattleMons[gBattlerTarget].ability == ABILITY_SIMPLE)
+            || gBattleMons[gBattlerTarget].ability == ABILITY_SIMPLE
+            || DoesBattlerHaveAbilityShield(gBattlerTarget))
         {
             gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 3);
         }
@@ -9384,7 +9374,8 @@ static void Cmd_various(void)
         return;
     case VARIOUS_TRY_ENTRAINMENT:
         if (IsEntrainmentBannedAbilityAttacker(gBattleMons[gBattlerAttacker].ability)
-          || IsEntrainmentTargetOrSimpleBeamBannedAbility(gBattleMons[gBattlerTarget].ability))
+          || IsEntrainmentTargetOrSimpleBeamBannedAbility(gBattleMons[gBattlerTarget].ability)
+          || DoesBattlerHaveAbilityShield(gBattlerTarget))
         {
             gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 3);
             return;
@@ -14560,7 +14551,8 @@ static void Cmd_trycopyability(void) // role play
     if (gBattleMons[gBattlerAttacker].ability == defAbility
       || defAbility == ABILITY_NONE
       || IsRolePlayBannedAbilityAtk(gBattleMons[gBattlerAttacker].ability)
-      || IsRolePlayBannedAbility(defAbility))
+      || IsRolePlayBannedAbility(defAbility)
+      || DoesBattlerHaveAbilityShield(gBattlerAttacker))
     {
         gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
     }
@@ -14728,8 +14720,10 @@ static void Cmd_setroom(void)
 
 static void Cmd_tryswapabilities(void) // skill swap
 {
-    if (IsSkillSwapBannedAbility(gBattleMons[gBattlerAttacker].ability)
-      || IsSkillSwapBannedAbility(gBattleMons[gBattlerTarget].ability))
+    if (IsRolePlayBannedAbility(gBattleMons[gBattlerAttacker].ability)
+      || IsRolePlayBannedAbility(gBattleMons[gBattlerTarget].ability)
+      || DoesBattlerHaveAbilityShield(gBattlerAttacker)
+      || DoesBattlerHaveAbilityShield(gBattlerTarget))
     {
         gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
         return;
@@ -16267,7 +16261,8 @@ static void Cmd_trygetbaddreamstarget(void)
 
 static void Cmd_tryworryseed(void)
 {
-    if (IsWorrySeedBannedAbility(gBattleMons[gBattlerTarget].ability))
+    if (IsWorrySeedBannedAbility(gBattleMons[gBattlerTarget].ability)
+      || DoesBattlerHaveAbilityShield(gBattlerTarget))
     {
         gBattlescriptCurrInstr = T1_READ_PTR(gBattlescriptCurrInstr + 1);
     }
