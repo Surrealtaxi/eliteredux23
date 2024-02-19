@@ -9634,10 +9634,12 @@ bool8 isBoxMonNicknamed(struct BoxPokemon *boxMon){
 }
 u16 getBst(u16 species){ 
     u16 bst = 0;
-    u8 i;
-    for(i = 0; i < 6; i++){
-        bst += gBaseStats[species].baseStats[i];
-    }
+    bst += gBaseStats[species].baseHP;
+    bst += gBaseStats[species].baseAttack;
+    bst += gBaseStats[species].baseDefense;
+    bst += gBaseStats[species].baseSpeed;
+    bst += gBaseStats[species].baseSpAttack;
+    bst += gBaseStats[species].baseSpDefense;
     return bst;
 }
 u16 GetRandomPokemonFromSpecies(u16 basespecies){
@@ -9830,7 +9832,7 @@ u16 GetRandomPokemonFromSpecies(u16 basespecies){
                 diff = basebst > rngbst ? basebst - rngbst : rngbst - basebst;
                 i++;
             }
-            while(species == SPECIES_NONE                     ||
+            while((species == SPECIES_NONE                     ||
                 species == SPECIES_ZACIAN                     || //Legendary
                 species == SPECIES_ZAMAZENTA                  || //Legendary
                 species == SPECIES_ETERNATUS                  || //Legendary
@@ -9903,7 +9905,7 @@ u16 GetRandomPokemonFromSpecies(u16 basespecies){
                 species == SPECIES_ALCREMIE_RAINBOW_SWIRL     ||
                 species == SPECIES_EISCUE_NOICE_FACE          ||
                 species == SPECIES_INDEEDEE_FEMALE            ||
-                species == SPECIES_MORPEKO_HANGRY
+                species == SPECIES_MORPEKO_HANGRY)
                 && diff > 30);
         }
     }
