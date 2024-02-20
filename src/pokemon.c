@@ -9832,7 +9832,7 @@ u16 GetRandomPokemonFromSpecies(u16 basespecies){
                 diff = basebst > rngbst ? basebst - rngbst : rngbst - basebst;
                 i++;
             }
-            while((species == SPECIES_NONE                     ||
+            while(species == SPECIES_NONE                     ||
                 species == SPECIES_ZACIAN                     || //Legendary
                 species == SPECIES_ZAMAZENTA                  || //Legendary
                 species == SPECIES_ETERNATUS                  || //Legendary
@@ -9905,8 +9905,8 @@ u16 GetRandomPokemonFromSpecies(u16 basespecies){
                 species == SPECIES_ALCREMIE_RAINBOW_SWIRL     ||
                 species == SPECIES_EISCUE_NOICE_FACE          ||
                 species == SPECIES_INDEEDEE_FEMALE            ||
-                species == SPECIES_MORPEKO_HANGRY)
-                && diff > 30);
+                species == SPECIES_MORPEKO_HANGRY
+                || diff > 30);
         }
     }
     
