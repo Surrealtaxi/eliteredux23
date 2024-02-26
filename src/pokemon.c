@@ -9686,6 +9686,175 @@ u16 getBst(u16 species){
     bst += gBaseStats[species].baseSpDefense;
     return bst;
 }
+
+u8 getTier(s8 loc){
+    if(loc == MAP_NUM(PETALBURG_CITY) ||
+        loc == MAP_NUM(SLATEPORT_CITY) ||
+        loc == MAP_NUM(RUSTBORO_CITY) ||
+        loc == MAP_NUM(LITTLEROOT_TOWN) ||
+        loc == MAP_NUM(OLDALE_TOWN) ||
+        loc == MAP_NUM(DEWFORD_TOWN) ||
+        loc == MAP_NUM(ROUTE101) ||
+        loc == MAP_NUM(ROUTE102) ||
+        loc == MAP_NUM(ROUTE103) ||
+        loc == MAP_NUM(ROUTE104) ||
+        loc == MAP_NUM(ROUTE106) ||
+        loc == MAP_NUM(ROUTE107) ||
+        loc == MAP_NUM(ROUTE109) ||
+        loc == MAP_NUM(ROUTE110) ||
+        loc == MAP_NUM(ROUTE116) ||
+        loc == MAP_NUM(RUSTURF_TUNNEL) ||
+        loc == MAP_NUM(GRANITE_CAVE_1F) ||
+        loc == MAP_NUM(GRANITE_CAVE_B1F) ||
+        loc == MAP_NUM(GRANITE_CAVE_B2F) ||
+        loc == MAP_NUM(GRANITE_CAVE_STEVENS_ROOM) ||
+        loc == MAP_NUM(PETALBURG_WOODS) ||
+        loc == MAP_NUM(PETALBURG_WOODS_2) ||
+        loc == MAP_NUM(PETALBURG_WOODS_3) ||
+        loc == MAP_NUM(SEASPRAY_CAVE) ||
+        loc == MAP_NUM(SEASPRAY_CAVE_B1F) ||
+        loc == MAP_NUM(DEWFORD_MEADOW) ||
+        loc == MAP_NUM(DEWFORD_MANOR_1F)){
+            return 1;
+        }
+    if(loc == MAP_NUM(MAUVILLE_CITY) ||
+        loc == MAP_NUM(FALLARBOR_TOWN) ||
+        loc == MAP_NUM(VERDANTURF_TOWN) ||
+        loc == MAP_NUM(ROUTE111) ||
+        loc == MAP_NUM(ROUTE112) ||
+        loc == MAP_NUM(ROUTE113) ||
+        loc == MAP_NUM(ROUTE114) ||
+        loc == MAP_NUM(ROUTE117) ||
+        loc == MAP_NUM(METEOR_FALLS_1F_1R) ||
+        loc == MAP_NUM(METEOR_FALLS_1F_2R) ||
+        loc == MAP_NUM(DESERT_RUINS) ||
+        loc == MAP_NUM(MT_CHIMNEY) ||
+        loc == MAP_NUM(JAGGED_PASS) ||
+        loc == MAP_NUM(FIERY_PATH) ||
+        loc == MAP_NUM(EMBER_PATH) ||
+        loc == MAP_NUM(ASHEN_WOODS) ||
+        loc == MAP_NUM(VERDANTURF_MEADOW)){
+            return 2;
+        }
+    if(loc == MAP_NUM(FORTREE_CITY) ||
+        loc == MAP_NUM(LILYCOVE_CITY) ||
+        loc == MAP_NUM(LAVARIDGE_TOWN) ||
+        loc == MAP_NUM(ROUTE105) ||
+        loc == MAP_NUM(ROUTE108) ||
+        loc == MAP_NUM(ROUTE115) ||
+        loc == MAP_NUM(ROUTE118) ||
+        loc == MAP_NUM(ROUTE119) ||
+        loc == MAP_NUM(ROUTE120) ||
+        loc == MAP_NUM(ROUTE121) ||
+        loc == MAP_NUM(ROUTE122) ||
+        loc == MAP_NUM(ROUTE123) ||
+        loc == MAP_NUM(MT_PYRE_1F) ||
+        loc == MAP_NUM(MT_PYRE_2F) ||
+        loc == MAP_NUM(MT_PYRE_3F) ||
+        loc == MAP_NUM(MT_PYRE_4F) ||
+        loc == MAP_NUM(MT_PYRE_5F) ||
+        loc == MAP_NUM(MT_PYRE_6F) ||
+        loc == MAP_NUM(MT_PYRE_EXTERIOR) ||
+        loc == MAP_NUM(MT_PYRE_SUMMIT) ||
+        loc == MAP_NUM(SHOAL_CAVE_LOW_TIDE_ENTRANCE_ROOM) ||
+        loc == MAP_NUM(SHOAL_CAVE_LOW_TIDE_INNER_ROOM) ||
+        loc == MAP_NUM(SHOAL_CAVE_LOW_TIDE_STAIRS_ROOM) ||
+        loc == MAP_NUM(SHOAL_CAVE_LOW_TIDE_LOWER_ROOM) ||
+        loc == MAP_NUM(SHOAL_CAVE_HIGH_TIDE_ENTRANCE_ROOM) ||
+        loc == MAP_NUM(SHOAL_CAVE_HIGH_TIDE_INNER_ROOM) ||
+        loc == MAP_NUM(NEW_MAUVILLE_ENTRANCE) ||
+        loc == MAP_NUM(NEW_MAUVILLE_INSIDE) ||
+        loc == MAP_NUM(ABANDONED_SHIP_ROOMS_1F) ||
+        loc == MAP_NUM(ABANDONED_SHIP_CORRIDORS_B1F) ||
+        loc == MAP_NUM(ABANDONED_SHIP_UNDERWATER1) ||
+        loc == MAP_NUM(MIRAGE_TOWER_1F) ||
+        loc == MAP_NUM(MIRAGE_TOWER_2F) ||
+        loc == MAP_NUM(MIRAGE_TOWER_3F) ||
+        loc == MAP_NUM(MIRAGE_TOWER_4F) ||
+        loc == MAP_NUM(MIRAGE_TOWER_B1F) ||
+        loc == MAP_NUM(DESERT_UNDERPASS) ||
+        loc == MAP_NUM(SANDSTREWN_RUINS) ||
+        loc == MAP_NUM(SANDSTREWN_RUINS_B1F) ||
+        loc == MAP_NUM(ROUTE111_RUINS_EXTERIOR) ||
+        loc == MAP_NUM(SANDSTREWN_RUINS_2F) ||
+        loc == MAP_NUM(SANDSTREWN_RUINS_3F)){
+            return 3;
+        }
+    if(loc == MAP_NUM(MOSSDEEP_CITY) ||
+        loc == MAP_NUM(SOOTOPOLIS_CITY) ||
+        loc == MAP_NUM(ROUTE124) ||
+        loc == MAP_NUM(ROUTE125) ||
+        loc == MAP_NUM(ROUTE126) ||
+        loc == MAP_NUM(ROUTE127) ||
+        loc == MAP_NUM(ROUTE128) ||
+        loc == MAP_NUM(ROUTE129) ||
+        loc == MAP_NUM(ROUTE130) ||
+        loc == MAP_NUM(ROUTE131) ||
+        loc == MAP_NUM(ROUTE132) ||
+        loc == MAP_NUM(ROUTE133) ||
+        loc == MAP_NUM(ROUTE134) ||
+        loc == MAP_NUM(UNDERWATER_ROUTE124) ||
+        loc == MAP_NUM(UNDERWATER_ROUTE126) ||
+        loc == MAP_NUM(UNDERWATER_ROUTE127) ||
+        loc == MAP_NUM(UNDERWATER_ROUTE128) ||
+        loc == MAP_NUM(UNDERWATER_ROUTE129) ||
+        loc == MAP_NUM(UNDERWATER_ROUTE105) ||
+        loc == MAP_NUM(UNDERWATER_ROUTE125) ||
+        loc == MAP_NUM(UNDERWATER_SOOTOPOLIS_CITY) ||
+        loc == MAP_NUM(AQUA_HIDEOUT_1F) ||
+        loc == MAP_NUM(SEAFLOOR_CAVERN_ENTRANCE) ||
+        loc == MAP_NUM(SEAFLOOR_CAVERN_ROOM1) ||
+        loc == MAP_NUM(SEAFLOOR_CAVERN_ROOM2) ||
+        loc == MAP_NUM(SEAFLOOR_CAVERN_ROOM3) ||
+        loc == MAP_NUM(SEAFLOOR_CAVERN_ROOM4) ||
+        loc == MAP_NUM(SEAFLOOR_CAVERN_ROOM5) ||
+        loc == MAP_NUM(SEAFLOOR_CAVERN_ROOM6) ||
+        loc == MAP_NUM(SEAFLOOR_CAVERN_ROOM7) ||
+        loc == MAP_NUM(SEAFLOOR_CAVERN_ROOM8) ||
+        loc == MAP_NUM(SEAFLOOR_CAVERN_ROOM9) ||
+        loc == MAP_NUM(UNDERWATER_ROUTE134) ||
+        loc == MAP_NUM(SCORCHED_SLAB) ||
+        loc == MAP_NUM(SHOAL_CAVE_LOW_TIDE_ICE_ROOM) ||
+        loc == MAP_NUM(MAGMA_HIDEOUT_1F) ||
+        loc == MAP_NUM(MAGMA_HIDEOUT_2F_1R) ||
+        loc == MAP_NUM(MAGMA_HIDEOUT_2F_2R) ||
+        loc == MAP_NUM(MAGMA_HIDEOUT_3F_1R) ||
+        loc == MAP_NUM(MAGMA_HIDEOUT_3F_2R) ||
+        loc == MAP_NUM(MAGMA_HIDEOUT_4F) ||
+        loc == MAP_NUM(MAGMA_HIDEOUT_3F_3R) ||
+        loc == MAP_NUM(MAGMA_HIDEOUT_2F_3R) ||
+        loc == MAP_NUM(SCORCHED_SLAB_B1F) ||
+        loc == MAP_NUM(SCORCHED_SLAB_B2F) ||
+        loc == MAP_NUM(SCORCHED_SLAB_HEATRANS_ROOM)){
+            return 4;
+        }
+    if(loc == MAP_NUM(EVER_GRANDE_CITY) ||
+        loc == MAP_NUM(PACIFIDLOG_TOWN) ||
+        loc == MAP_NUM(METEOR_FALLS_B1F_1R) ||
+        loc == MAP_NUM(METEOR_FALLS_B1F_2R) ||
+        loc == MAP_NUM(CAVE_OF_ORIGIN_ENTRANCE) ||
+        loc == MAP_NUM(CAVE_OF_ORIGIN_1F) ||
+        loc == MAP_NUM(CAVE_OF_ORIGIN_B1F) ||
+        loc == MAP_NUM(VICTORY_ROAD_1F) ||
+        loc == MAP_NUM(VICTORY_ROAD_B1F) ||
+        loc == MAP_NUM(VICTORY_ROAD_B2F) ||
+        loc == MAP_NUM(SKY_PILLAR_1F) ||
+        loc == MAP_NUM(SKY_PILLAR_2F) ||
+        loc == MAP_NUM(SKY_PILLAR_3F) ||
+        loc == MAP_NUM(SKY_PILLAR_4F) ||
+        loc == MAP_NUM(SKY_PILLAR_5F) ||
+        loc == MAP_NUM(ARTISAN_CAVE_B1F) ||
+        loc == MAP_NUM(ARTISAN_CAVE_1F) ||
+        loc == MAP_NUM(ALTERING_CAVE) ||
+        loc == MAP_NUM(METEOR_FALLS_STEVENS_CAVE) ||
+        loc == MAP_NUM(CAVE_OF_ORIGIN_DIANCIES_ROOM) ||
+        loc == MAP_NUM(METEOR_FALLS_JIRACHIS_ROOM) ||
+        loc == MAP_NUM(ALTERING_CAVE_1F) ||
+        loc == MAP_NUM(ALTERING_CAVE_B1F)){
+            return 5;
+        }
+    return 0;
+}
 u16 GetRandomPokemonFromSpecies(u16 basespecies){
 	u16 species = basespecies;
     u16 rndSeed = VarGet(VAR_RANDOMIZED_SEED);
@@ -9693,6 +9862,8 @@ u16 GetRandomPokemonFromSpecies(u16 basespecies){
     u16 diff = 0;
     u16 basebst = 0;
     u16 rngbst = 0;
+    u16 loc = gSaveBlock1Ptr->location.mapNum;
+    u8 tier = getTier(loc);
     if(VarGet(VAR_RANDOMIZED_SEED) == 0){
         u16 newseed = Random() % 9999;
         VarSet(VAR_RANDOMIZED_SEED, newseed);
@@ -9708,163 +9879,7 @@ u16 GetRandomPokemonFromSpecies(u16 basespecies){
                 species = (basespecies * rndSeed) % SPECIES_CALYREX;
                 i++;
             }
-            while(species == SPECIES_NONE                     ||
-                //Sub-Legendary
-                species == SPECIES_ARTICUNO                   || 
-                species == SPECIES_ZAPDOS                     || 
-                species == SPECIES_MOLTRES                    || 
-                species == SPECIES_RAIKOU                     || 
-                species == SPECIES_ENTEI                      || 
-                species == SPECIES_SUICUNE                    || 
-                species == SPECIES_REGICE                     || 
-                species == SPECIES_REGIROCK                   || 
-                species == SPECIES_REGISTEEL                  || 
-                species == SPECIES_LATIAS                     || 
-                species == SPECIES_LATIOS                     ||
-                species == SPECIES_UXIE                       ||
-                species == SPECIES_MESPRIT                    ||
-                species == SPECIES_AZELF                      ||
-                species == SPECIES_HEATRAN                    ||
-                species == SPECIES_REGIGIGAS                  ||
-                species == SPECIES_CRESSELIA                  ||
-                species == SPECIES_COBALION                   ||
-                species == SPECIES_TERRAKION                  ||
-                species == SPECIES_VIRIZION                   ||
-                species == SPECIES_TORNADUS                   ||
-                species == SPECIES_THUNDURUS                  ||
-                species == SPECIES_TYPE_NULL                  ||
-                species == SPECIES_SILVALLY                   ||
-                species == SPECIES_TAPU_KOKO                  ||
-                species == SPECIES_TAPU_LELE                  ||
-                species == SPECIES_TAPU_BULU                  ||
-                species == SPECIES_TAPU_FINI                  ||
-                species == SPECIES_NIHILEGO                   ||
-                species == SPECIES_BUZZWOLE                   ||
-                species == SPECIES_PHEROMOSA                  ||
-                species == SPECIES_XURKITREE                  ||
-                species == SPECIES_CELESTEELA                 ||
-                species == SPECIES_KARTANA                    ||
-                species == SPECIES_GUZZLORD                   ||
-                species == SPECIES_POIPOLE                    ||
-                species == SPECIES_NAGANADEL                  ||
-                species == SPECIES_STAKATAKA                  ||
-                species == SPECIES_BLACEPHALON                ||
-                //Legendary
-                species == SPECIES_MEWTWO                     ||
-                species == SPECIES_LUGIA                      || 
-                species == SPECIES_HO_OH                      || 
-                species == SPECIES_KYOGRE                     || 
-                species == SPECIES_GROUDON                    || 
-                species == SPECIES_RAYQUAZA                   || 
-                species == SPECIES_DIALGA                     || 
-                species == SPECIES_PALKIA                     || 
-                species == SPECIES_GIRATINA                   || 
-                species == SPECIES_RESHIRAM                   || 
-                species == SPECIES_ZEKROM                     || 
-                species == SPECIES_KYUREM                     || 
-                species == SPECIES_XERNEAS                    || 
-                species == SPECIES_YVELTAL                    || 
-                species == SPECIES_ZYGARDE                    || 
-                species == SPECIES_COSMOG                     || 
-                species == SPECIES_COSMOEM                    || 
-                species == SPECIES_SOLGALEO                   || 
-                species == SPECIES_LUNALA                     || 
-                species == SPECIES_NECROZMA                   || 
-                //Mythical
-                species == SPECIES_MEW                        || 
-                species == SPECIES_CELEBI                     || 
-                species == SPECIES_JIRACHI                    || 
-                species == SPECIES_DEOXYS                     || 
-                species == SPECIES_PHIONE                     || 
-                species == SPECIES_MANAPHY                    || 
-                species == SPECIES_DARKRAI                    || 
-                species == SPECIES_SHAYMIN                    || 
-                species == SPECIES_ARCEUS                     || 
-                species == SPECIES_VICTINI                    || 
-                species == SPECIES_KELDEO                     || 
-                species == SPECIES_MELOETTA                   || 
-                species == SPECIES_GENESECT                   || 
-                species == SPECIES_DIANCIE                    || 
-                species == SPECIES_HOOPA                      || 
-                species == SPECIES_VOLCANION                  || 
-                species == SPECIES_MAGEARNA                   || 
-                species == SPECIES_MARSHADOW                  || 
-                species == SPECIES_ZERAORA                    || 
-                species == SPECIES_MELTAN                     || 
-                species == SPECIES_MELMETAL                   ||
-                species == SPECIES_ZACIAN                     || //Unfinished
-                species == SPECIES_ZAMAZENTA                  || //Unfinished
-                species == SPECIES_ETERNATUS                  || //Unfinished
-                species == SPECIES_KUBFU                      || //Unfinished
-                species == SPECIES_URSHIFU                    || //Unfinished
-                species == SPECIES_ZARUDE                     || //Unfinished
-                species == SPECIES_REGIELEKI                  || //Unfinished
-                species == SPECIES_REGIDRAGO                  || //Unfinished
-                species == SPECIES_GLASTRIER                  || //Unfinished
-                species == SPECIES_SPECTRIER                  || //Unfinished
-                species == SPECIES_CALYREX                    || //Unfinished
-                species == SPECIES_ZACIAN_CROWNED_SWORD       || //Unfinished
-                species == SPECIES_ZAMAZENTA_CROWNED_SHIELD   || //Unfinished
-                species == SPECIES_ETERNATUS_ETERNAMAX        || //Unfinished
-                species == SPECIES_URSHIFU_RAPID_STRIKE_STYLE || //Unfinished
-                species == SPECIES_ZARUDE_DADA                || //Unfinished
-                //Unfinished Mons
-                species == SPECIES_SKWOVET                    ||
-                species == SPECIES_GREEDENT                   ||
-                species == SPECIES_BLIPBUG                    ||
-                species == SPECIES_DOTTLER                    ||
-                species == SPECIES_ORBEETLE                   ||
-                species == SPECIES_NICKIT                     ||
-                species == SPECIES_THIEVUL                    ||
-                species == SPECIES_GOSSIFLEUR                 ||
-                species == SPECIES_ELDEGOSS                   ||
-                species == SPECIES_WOOLOO                     ||
-                species == SPECIES_DUBWOOL                    ||
-                species == SPECIES_CHEWTLE                    ||
-                species == SPECIES_DREDNAW                    ||
-                species == SPECIES_SILICOBRA                  ||
-                species == SPECIES_SANDACONDA                 ||
-                species == SPECIES_CRAMORANT                  ||
-                species == SPECIES_ARROKUDA                   ||
-                species == SPECIES_BARRASKEWDA                ||
-                species == SPECIES_CLOBBOPUS                  ||
-                species == SPECIES_GRAPPLOCT                  ||
-                species == SPECIES_CURSOLA                    ||
-                species == SPECIES_MR_RIME                    ||
-                species == SPECIES_MILCERY                    ||
-                species == SPECIES_ALCREMIE                   ||
-                species == SPECIES_FALINKS                    ||
-                species == SPECIES_PINCURCHIN                 ||
-                species == SPECIES_SNOM                       ||
-                species == SPECIES_FROSMOTH                   ||
-                species == SPECIES_STONJOURNER                ||
-                species == SPECIES_EISCUE                     ||
-                species == SPECIES_INDEEDEE                   ||
-                species == SPECIES_MORPEKO                    ||
-                species == SPECIES_CUFANT                     ||
-                species == SPECIES_COPPERAJAH                 ||
-                species == SPECIES_DURALUDON                  ||
-                species == SPECIES_SLOWPOKE_GALARIAN          ||
-                species == SPECIES_WEEZING_GALARIAN           ||
-                species == SPECIES_MR_MIME_GALARIAN           ||
-                species == SPECIES_SLOWKING_GALARIAN          ||
-                species == SPECIES_CORSOLA_GALARIAN           ||
-                species == SPECIES_STUNFISK_GALARIAN          ||
-                species == SPECIES_CRAMORANT_GULPING          ||
-                species == SPECIES_CRAMORANT_GORGING          ||
-                species == SPECIES_SINISTEA_ANTIQUE           ||
-                species == SPECIES_POLTEAGEIST_ANTIQUE        ||
-                species == SPECIES_ALCREMIE_RUBY_CREAM        ||
-                species == SPECIES_ALCREMIE_MATCHA_CREAM      ||
-                species == SPECIES_ALCREMIE_MINT_CREAM        ||
-                species == SPECIES_ALCREMIE_LEMON_CREAM       ||
-                species == SPECIES_ALCREMIE_SALTED_CREAM      ||
-                species == SPECIES_ALCREMIE_RUBY_SWIRL        ||
-                species == SPECIES_ALCREMIE_CARAMEL_SWIRL     ||
-                species == SPECIES_ALCREMIE_RAINBOW_SWIRL     ||
-                species == SPECIES_EISCUE_NOICE_FACE          ||
-                species == SPECIES_INDEEDEE_FEMALE            ||
-                species == SPECIES_MORPEKO_HANGRY);
+            while(tier != gBaseStats[species].tier);
         }
         else{
             //Legendary Mons Disabled
