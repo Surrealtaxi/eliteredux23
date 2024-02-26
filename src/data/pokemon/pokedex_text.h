@@ -16,6 +16,12 @@ const u8 gDuelumberPokedexText[] = _(
     "Dont ask me why potato. Maybe because\n"
     "I like potatos.");
 
+const u8 gEscarginitePokedexText[] = _(
+    "This is not a actually Pokemon.\n"
+    "It's really just a potato\n"
+    "Dont ask me why potato. Maybe because\n"
+    "I like potatos.");
+
 const u8 gBulbasaurPokedexText[] = _(
     "Bulbasaur can be seen napping in bright\n"
     "sunlight. There is a seed on its back.\n"
@@ -5399,16 +5405,16 @@ const u8 gOverqwilPokedexText[] = _(
     "");
 
 const u8 gEnamorusPokedexText[] = _(
-    "When it flies to this land from across the sea,\n"
-    "the bitter winter comes to an end.\n"
+    "When it flies to this land from across the\n"
+    "sea, the bitter winter comes to an end.\n"
     "\n"
     "");
 
 const u8 gSprigatitoPokedexText[] = _(
     "The sweet scent its body gives off\n"
     "mesmerizes those around it. The scent\n"
-    "grows stronger when this Pokémon is in the sun.\n"
-    "");
+    "grows stronger when this Pokémon\n"
+    "is in the sun.");
 
 const u8 gFloragatoPokedexText[] = _(
     "Floragato deftly wields the vine\n"

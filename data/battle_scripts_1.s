@@ -124,7 +124,7 @@ gBattleScriptsForMoveEffects::
 	.4byte BattleScript_EffectHit                     @ EFFECT_FALSE_SWIPE
 	.4byte BattleScript_EffectHealBell                @ EFFECT_HEAL_BELL
 	.4byte BattleScript_EffectHit                     @ EFFECT_ALWAYS_CRIT
-	.4byte BattleScript_EffectTripleKick              @ EFFECT_TRIPLE_KICK
+	.4byte BattleScript_EffectHit                     @ EFFECT_TRIPLE_KICK
 	.4byte BattleScript_EffectThief                   @ EFFECT_THIEF
 	.4byte BattleScript_EffectMeanLook                @ EFFECT_MEAN_LOOK
 	.4byte BattleScript_EffectNightmare               @ EFFECT_NIGHTMARE
@@ -1180,6 +1180,25 @@ BattleScript_EffectRemoveTerrain:
 	playanimation BS_ATTACKER, B_ANIM_RESTORE_BG, NULL
 	tryfaintmon BS_TARGET, FALSE, NULL
 	goto BattleScript_MoveEnd
+
+BattleScript_Lawnmower::
+	removeterrain
+	printfromtable gTerrainEndingStringIds
+	jumpifbyte CMP_EQUAL, cMULTISTRING_CHOOSER, B_MSG_PSYCHICTERRAINENDS, BattleScript_Lawnmower_SpDef
+	jumpifbyte CMP_EQUAL, cMULTISTRING_CHOOSER, B_MSG_MISTYTERRAINENDS, BattleScript_Lawnmower_SpDef
+	jumpifbyte CMP_EQUAL, cMULTISTRING_CHOOSER, B_MSG_PSYCHICTERRAINENDS + 1, BattleScript_End3
+	setstatchanger STAT_DEF, 1, FALSE
+	goto BattleScript_Lawnmower_Continue
+BattleScript_Lawnmower_Continue:
+	printfromtable gTerrainEndingStringIds
+	waitmessage B_WAIT_TIME_LONG
+	playanimation BS_ATTACKER, B_ANIM_RESTORE_BG, NULL
+	call BattleScript_PerformStatUp
+BattleScript_End3:
+	end3
+BattleScript_Lawnmower_SpDef:
+	setstatchanger STAT_SPDEF, 1, FALSE
+	goto BattleScript_Lawnmower_Continue
 
 BattleScript_EffectClearWeatherAndTerrainHit::
 	attackcanceler
@@ -5132,13 +5151,6 @@ BattleScript_EffectSoothingAroma::
 	copyword gCurrentMove, gTempMove
 	end3
 
-BattleScript_EffectTripleKick::
-	attackcanceler
-	accuracycheck BattleScript_PrintMoveMissed, ACC_CURR_MOVE
-	attackstring
-	increasetriplekickpower BS_ATTACKER
-	goto BattleScript_HitFromAtkString
-
 BattleScript_EffectThief::
 	setmoveeffect MOVE_EFFECT_STEAL_ITEM
 	goto BattleScript_EffectHit
@@ -5330,6 +5342,7 @@ BattleScript_EffectPerishSong::
 	setbyte gBattlerTarget, 0
 BattleScript_PerishSongLoop::
 	jumpifability BS_TARGET, ABILITY_SOUNDPROOF, BattleScript_PerishSongBlocked
+	jumpifability BS_TARGET, ABILITY_PARROTING, BattleScript_PerishSongBlocked
 	jumpifability BS_TARGET, ABILITY_NOISE_CANCEL, BattleScript_PerishSongBlocked
 	jumpifability BS_TARGET_PARTNER, ABILITY_NOISE_CANCEL, BattleScript_PerishSongBlockedPartner
 	jumpifpranksterblocked BS_TARGET, BattleScript_PerishSongNotAffected
@@ -8863,6 +8876,12 @@ BattleScript_FlameOrb::
 	call BattleScript_MoveEffectBurn
 	end2
 
+BattleScript_FrostOrb::
+	setbyte cMULTISTRING_CHOOSER, 0
+	copybyte gEffectBattler, gBattlerAttacker
+	call BattleScript_MoveEffectFrostbite
+	end2
+
 BattleScript_MoveEffectPoison::
 	statusanimation BS_EFFECT_BATTLER
 	printfromtable gGotPoisonedStringIds
@@ -10469,15 +10488,14 @@ BattleScript_TargetAbilityStatRaiseOnMoveEnd2::
 BattleScript_ScriptingAbilityStatRaise::
 	copybyte gBattlerAbility, sBATTLER
 	call BattleScript_AbilityPopUp
-	copybyte sSAVED_DMG, gBattlerAttacker
-	copybyte gBattlerAttacker, sBATTLER
+	swapbattlers sBATTLER, gBattlerAttacker
 	statbuffchange STAT_BUFF_NOT_PROTECT_AFFECTED | MOVE_EFFECT_CERTAIN, NULL
 	setgraphicalstatchangevalues
 	playanimation BS_SCRIPTING, B_ANIM_STATS_CHANGE, sB_ANIM_ARG1
 	waitanimation
 	printstring STRINGID_ATTACKERABILITYSTATRAISE
 	waitmessage B_WAIT_TIME_LONG
-	copybyte gBattlerAttacker, sSAVED_DMG
+	unswapbattlers sBATTLER, gBattlerAttacker
 	return
 
 BattleScript_WeakArmorActivates::
@@ -10607,15 +10625,15 @@ BattleScript_PressureRemoveStats::
 	end3
 
 BattleScript_ParadoxBoostActivates::
-	call BattleScript_AbilityPopUp
-	printfromtable gParadoxBoostSourceIds
-	waitmessage B_WAIT_TIME_LONG
-	printstring STRINGID_PARADOX_BOOST
-	waitmessage B_WAIT_TIME_LONG
+	call BattleScript_ParadoxBoostActivatesRet
 	end3
 
 BattleScript_ParadoxBoostActivatesRet::
 	call BattleScript_AbilityPopUp
+	jumpifbyte CMP_NOT_EQUAL, cMULTISTRING_CHOOSER, B_MSG_PARADOX_BOOST_ITEM, BattleScript_ParadoxBoostActivatesRet_NoItem
+	playanimation BS_ATTACKER, B_ANIM_HELD_ITEM_EFFECT, NULL
+	waitanimation
+BattleScript_ParadoxBoostActivatesRet_NoItem:
 	printfromtable gParadoxBoostSourceIds
 	waitmessage B_WAIT_TIME_LONG
 	printstring STRINGID_PARADOX_BOOST
@@ -10935,13 +10953,22 @@ BattleScript_GemActivates::
 	removeitem BS_ATTACKER
 	return
 
-BattleScript_BerryReduceDmg::
+BattleScript_TargetAteItem::
 	playanimation BS_TARGET, B_ANIM_HELD_ITEM_EFFECT, NULL
 	waitanimation
 	setlastuseditem BS_TARGET
 	printstring STRINGID_TARGETATEITEM
 	waitmessage B_WAIT_TIME_LONG
 	removeitem BS_TARGET
+	return
+
+BattleScript_AttackerAteItem::
+	playanimation BS_ATTACKER, B_ANIM_HELD_ITEM_EFFECT, NULL
+	waitanimation
+	setlastuseditem BS_ATTACKER
+	printstring STRINGID_ATTACKERATEITEM
+	waitmessage B_WAIT_TIME_LONG
+	removeitem BS_ATTACKER
 	return
 
 BattleScript_PrintBerryReduceString::
@@ -11680,24 +11707,24 @@ BattleScript_PerformCopyStatEffects::
 	copybyte gBattlerAttacker, sSAVED_BATTLER 
 	return
 
-BattleScript_PerformCopyStatEffectsChangeStatDown::
-	statbuffchange STAT_BUFF_ALLOW_PTR | MOVE_EFFECT_AFFECTS_USER, BattleScript_PerformCopyStatEffectsChangeStatDownNoResult
+BattleScript_PerformStatDown::
+	statbuffchange STAT_BUFF_ALLOW_PTR | MOVE_EFFECT_AFFECTS_USER, BattleScript_PerformStatDownNoResult
 	setgraphicalstatchangevalues
 	playanimation BS_ATTACKER, B_ANIM_STATS_CHANGE, sB_ANIM_ARG1
 	waitanimation
 	printfromtable gStatDownStringIds
 	waitmessage B_WAIT_TIME_SHORT
-BattleScript_PerformCopyStatEffectsChangeStatDownNoResult:
+BattleScript_PerformStatDownNoResult:
 	return
 
-BattleScript_PerformCopyStatEffectsChangeStatUp::
-	statbuffchange STAT_BUFF_ALLOW_PTR | MOVE_EFFECT_AFFECTS_USER, BattleScript_PerformCopyStatEffectsChangeStatUpNoResult
+BattleScript_PerformStatUp::
+	statbuffchange STAT_BUFF_ALLOW_PTR | MOVE_EFFECT_AFFECTS_USER, BattleScript_PerformStatUpNoResult
 	setgraphicalstatchangevalues
 	playanimation BS_ATTACKER, B_ANIM_STATS_CHANGE, sB_ANIM_ARG1
 	waitanimation
 	printfromtable gStatUpStringIds
 	waitmessage B_WAIT_TIME_SHORT
-BattleScript_PerformCopyStatEffectsChangeStatUpNoResult:
+BattleScript_PerformStatUpNoResult:
 	return
 
 BattleScript_AbilityPopUpAndWait::

@@ -67,6 +67,18 @@ enum
     SPRITE_ARR_ID_MON_ICON_2_SPEED,
     SPRITE_ARR_ID_MON_ICON_3_SPEED,
     SPRITE_ARR_ID_MON_ICON_4_SPEED,
+    SPRITE_ARR_ID_MON_ICON_1_PARTY_PLAYER,
+    SPRITE_ARR_ID_MON_ICON_2_PARTY_PLAYER,
+    SPRITE_ARR_ID_MON_ICON_3_PARTY_PLAYER,
+    SPRITE_ARR_ID_MON_ICON_4_PARTY_PLAYER,
+    SPRITE_ARR_ID_MON_ICON_5_PARTY_PLAYER,
+    SPRITE_ARR_ID_MON_ICON_6_PARTY_PLAYER,
+    SPRITE_ARR_ID_MON_ICON_1_PARTY_ENEMY,
+    SPRITE_ARR_ID_MON_ICON_2_PARTY_ENEMY,
+    SPRITE_ARR_ID_MON_ICON_3_PARTY_ENEMY,
+    SPRITE_ARR_ID_MON_ICON_4_PARTY_ENEMY,
+    SPRITE_ARR_ID_MON_ICON_5_PARTY_ENEMY,
+    SPRITE_ARR_ID_MON_ICON_6_PARTY_ENEMY,
     NUM_SPRITES,
 };
 
@@ -147,6 +159,8 @@ enum
     STATUS_INFO_ELECTRIFIED,
     STATUS_INFO_PLASMA_FIST,
     STATUS_INFO_COILED,
+    STATUS_INFO_PROTOSYNTHESIS,
+    STATUS_INFO_QUARK_DRIVE,
     NUM_STATUS_INFO,
 };
 
@@ -220,6 +234,7 @@ enum battler_TabIds
 
 enum field_TabsIds
 {
+    TAB_PARTY,
     TAB_FIELD,
     TAB_SPEED,
     TAB_PLAYER_SIDE,
@@ -268,6 +283,7 @@ static void Menu_FadeAndBail(void);
 static bool8 Menu_LoadGraphics(void);
 static void Menu_InitWindows(void);
 static void PrintToWindow(u8 windowId, u8 colorIdx);
+static void PrintPartyTab(void);
 static void PrintFieldTab(void);
 static void PrintSpeedTab(void);
 static void PrintSideTab(u8 side);
@@ -282,6 +298,9 @@ static void PrintMoveInfo(u16 move, u8 x, u8 y, u8 moveIdx);
 
 static u8 ShowSpeciesIcon(u8 num);
 static u8 ShowSpeciesIconSpeed(u8 battler, u8 x, u8 y);
+static void FreeEveryPartyMonIconSprite(void);
+static void FreePartySpeciesIconSprite(u8 num, bool8 isEnemyMon);
+static u8 ShowSpeciesIconParty(u8 num, bool8 isEnemyParty, u8 x, u8 y);
 static void FreeEveryMonIconSprite(void);
 static void FreeSpeciesIconSprite(u8 battler);
 static void SetSpriteInvisibility(u8 spriteArrayId, bool8 invisible);
@@ -358,6 +377,7 @@ static const u32 sMenu_Tilemap_Doubles_Battler_Abilities[]  = INCBIN_U32("graphi
 //Field Tabs
 static const u32 sMenu_Tilemap_Singles_Field[]              = INCBIN_U32("graphics/ui_menus/battle_menu/titlemap_singles_field.bin.lz");
 static const u32 sMenu_Tilemap_Doubles_Field[]              = INCBIN_U32("graphics/ui_menus/battle_menu/titlemap_doubles_field.bin.lz");
+static const u32 sMenu_Tilemap_Party_Info[]                 = INCBIN_U32("graphics/ui_menus/battle_menu/tilemap_field_party.bin.lz");
 //
 static const u32 sMenu_Tilemap_Singles_Speed[]              = INCBIN_U32("graphics/ui_menus/battle_menu/titlemap_singles_field_speed.bin.lz");
 static const u32 sMenu_Tilemap_Doubles_Speed[]              = INCBIN_U32("graphics/ui_menus/battle_menu/titlemap_doubles_field_speed.bin.lz");
@@ -781,6 +801,14 @@ void UI_Battle_Menu_Init(MainCallback callback)
                     if(gStatuses4[j] & STATUS4_COILED)
                         isExtraInfoShown = TRUE;
                 break;
+                case STATUS_INFO_PROTOSYNTHESIS:
+                    if (GetAbilityState(j, ABILITY_PROTOSYNTHESIS))
+                        isExtraInfoShown = TRUE;
+                break;
+                case STATUS_INFO_QUARK_DRIVE:
+                    if (GetAbilityState(j, ABILITY_QUARK_DRIVE))
+                        isExtraInfoShown = TRUE;
+                break;
             }
 
             if(isExtraInfoShown && IsBattlerAlive(j)){
@@ -952,6 +980,9 @@ void LoadTilemapFromMode(void)
     }
     else{
         switch(sMenuDataPtr->fieldTabId){
+            case TAB_PARTY:
+                LZDecompressWram(sMenu_Tilemap_Party_Info, sBg1TilemapBuffer);
+            break;
             case TAB_FIELD:
             case TAB_PLAYER_SIDE:
             case TAB_ENEMY_SIDE:
@@ -1093,6 +1124,8 @@ static u8 statorder[NUM_BATTLE_STATS] = {
 
 #define TAG_ITEM_ICON         4133
 #define TAG_BATTLER_SPEED     4134
+#define TAG_ICON_PARTY_PLAYER 4135
+#define TAG_ICON_PARTY_ENEMY  TAG_ICON_PARTY_PLAYER + PARTY_SIZE
 
 static const u32 gBattleFieldIconForest_Gfx[] = INCBIN_U32("graphics/ui_menus/battle_menu/fields/forest.4bpp.lz");
 static const u16 gBattleFieldIconForest_Pal[] = INCBIN_U16("graphics/ui_menus/battle_menu/fields/forest.gbapal");
@@ -1223,6 +1256,7 @@ const u8 sText_Title_Battler_Ability[]   = _("Abilities Info");
 const u8 sText_Title_Battler_Moves[]     = _("Moves Info");
 const u8 sText_Title_Battler_Status[]    = _("Pokémon Status");
 const u8 sText_Title_Battler_Damage[]    = _("Damage Calculator");
+const u8 sText_Title_Field_Party[]       = _("Party Info");
 const u8 sText_Title_Field_Stats[]       = _("Field Info");
 const u8 sText_Title_Enemy_Side[]        = _("Enemy Side Info");
 const u8 sText_Title_Player_Side[]       = _("Player Side Info");
@@ -2042,6 +2076,11 @@ const u8 sText_Title_Status_Coiled_Up[]                     = _("Coiled Up");
 const u8 sText_Title_Status_Coiled_Up_Description[]         = _("The next biting move used by\n"
                                                                 "this Pokémon will have an\n"
                                                                 "increased priority.");
+const u8 sText_Title_Status_Quark_Drive[]                   = _("Quark Drive");
+const u8 sText_Title_Status_Protosynthesis[]                = _("Protosynthesis");
+const u8 sText_Title_Status_Paradox_Boost_Description[]     = _("This Pokémon's highest stat\n"
+                                                                "is boosted by 30%. If speed\n"
+                                                                "+50% instead.");
 
 #define SPACE_BETWEEN_LINES_FIELD ((6 * 8) + 4)
 #define MAX_DESCRIPTION_LINES 3
@@ -2371,7 +2410,7 @@ static void PrintStatusTab(void){
                 //Turns Left
                 StringCopy(gStringVar1, sText_Title_Field_Turns_Left);
                 AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2 + (SPACE_BETWEEN_LINES_FIELD * 2), (y * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, gStringVar1);
-                turnsLeft = gDisableStructs[sMenuDataPtr->battlerId].perishSongTimer;
+                turnsLeft = gVolatileStructs[sMenuDataPtr->battlerId].perishSongTimer;
                 ConvertIntToDecimalStringN(gStringVar1, turnsLeft, STR_CONV_MODE_LEFT_ALIGN, 4);
                 AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2 + (SPACE_BETWEEN_LINES_FIELD * 3), (y * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, gStringVar1);
 
@@ -2396,7 +2435,7 @@ static void PrintStatusTab(void){
                 //Turns Left
                 StringCopy(gStringVar1, sText_Title_Field_Turns_Left);
                 AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2 + (SPACE_BETWEEN_LINES_FIELD * 2), (y * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, gStringVar1);
-                turnsLeft = gDisableStructs[sMenuDataPtr->battlerId].perishSongTimer;
+                turnsLeft = gVolatileStructs[sMenuDataPtr->battlerId].perishSongTimer;
                 ConvertIntToDecimalStringN(gStringVar1, turnsLeft, STR_CONV_MODE_LEFT_ALIGN, 4);
                 AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2 + (SPACE_BETWEEN_LINES_FIELD * 3), (y * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, gStringVar1);
 
@@ -2464,7 +2503,7 @@ static void PrintStatusTab(void){
                 //Turns Left
                 StringCopy(gStringVar1, sText_Title_Field_Turns_Left);
                 AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2 + (SPACE_BETWEEN_LINES_FIELD * 2), (y * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, gStringVar1);
-                turnsLeft = gDisableStructs[sMenuDataPtr->battlerId].embargoTimer;
+                turnsLeft = gVolatileStructs[sMenuDataPtr->battlerId].embargoTimer;
                 ConvertIntToDecimalStringN(gStringVar1, turnsLeft, STR_CONV_MODE_LEFT_ALIGN, 4);
                 AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2 + (SPACE_BETWEEN_LINES_FIELD * 3), (y * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, gStringVar1);
 
@@ -2516,7 +2555,7 @@ static void PrintStatusTab(void){
                 //Turns Left
                 StringCopy(gStringVar1, sText_Title_Field_Turns_Left);
                 AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2 + (SPACE_BETWEEN_LINES_FIELD * 2), (y * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, gStringVar1);
-                turnsLeft = gDisableStructs[sMenuDataPtr->battlerId].magnetRiseTimer;
+                turnsLeft = gVolatileStructs[sMenuDataPtr->battlerId].magnetRiseTimer;
                 ConvertIntToDecimalStringN(gStringVar1, turnsLeft, STR_CONV_MODE_LEFT_ALIGN, 4);
                 AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2 + (SPACE_BETWEEN_LINES_FIELD * 3), (y * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, gStringVar1);
 
@@ -2558,6 +2597,24 @@ static void PrintStatusTab(void){
                 
                 //Description
                 StringCopy(gStringVar1, sText_Title_Status_Coiled_Up_Description);
+                AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2, ((y + 1) * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_BLACK], 0xFF, gStringVar1);
+                printedInfo = TRUE;
+            break;
+            case STATUS_INFO_PROTOSYNTHESIS:
+                StringCopy(gStringVar1, sText_Title_Status_Protosynthesis);
+                AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2, (y * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, gStringVar1);
+                
+                //Description
+                StringCopy(gStringVar1, sText_Title_Status_Paradox_Boost_Description);
+                AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2, ((y + 1) * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_BLACK], 0xFF, gStringVar1);
+                printedInfo = TRUE;
+            break;
+            case STATUS_INFO_QUARK_DRIVE:
+                StringCopy(gStringVar1, sText_Title_Status_Quark_Drive);
+                AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2, (y * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, gStringVar1);
+                
+                //Description
+                StringCopy(gStringVar1, sText_Title_Status_Paradox_Boost_Description);
                 AddTextPrinterParameterized4(windowId, FONT_SMALL_NARROW, (x * 8) + x2, ((y + 1) * 8) + y2, 0, 0, sMenuWindowFontColors[FONT_BLACK], 0xFF, gStringVar1);
                 printedInfo = TRUE;
             break;
@@ -2905,6 +2962,47 @@ static void PrintDamageCalculation(u8 battler, u8 target, u8 moveIdx){
     }
     else
         StringExpandPlaceholders(gStringVar4, gText_SmogonDamageCalculator_SixthPart_OHKO);
+}
+
+#define NUM_PARTY_ICONS_SHOWN  6
+#define PARTY_POKEMON_ICON_X   (11 * 8) + 4
+#define PARTY_POKEMON_ICON_Y   (4 * 8)
+#define PARTY_POKEMON_ICON_Y_2 (4 * 8) + (10 * 8)
+#define PARTY_POKEMON_SPACE_X  (7 * 8)
+#define PARTY_POKEMON_SPACE_Y  (3 * 8)
+
+static void PrintPartyTab(){
+    u8 i, j;
+    u8 x, y, x2, y2;
+    u8 windowId = WINDOW_1;
+    u8 colorIdx = FONT_BLACK;
+    u8 turnsLeft = 5;
+    bool8 printedInfo = FALSE;
+    u8 maxLines = 3;
+
+    FillWindowPixelBuffer(windowId, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
+
+    //Title
+    x  = 9;
+    y  = 0;
+    x2 = 0;
+    y2 = -4;
+    AddTextPrinterParameterized4(windowId, FONT_SMALL, (x * 8), (y * 8), 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, sText_Title_Field_Party);
+    x  = 15;
+    AddTextPrinterParameterized4(windowId, FONT_SMALL, (x * 8), (y * 8), 0, 0, sMenuWindowFontColors[FONT_WHITE], 0xFF, sText_Title_FieldControllers);
+
+    //Player Mon Icons
+    for(i = 0; i < NUM_PARTY_ICONS_SHOWN; i++){
+        ShowSpeciesIconParty(i, FALSE, PARTY_POKEMON_ICON_X + ((i % 3) * PARTY_POKEMON_SPACE_X), PARTY_POKEMON_ICON_Y + ((i / 3) * PARTY_POKEMON_SPACE_Y));
+    }
+
+    //Enemy Mon Icons
+    for(i = 0; i < NUM_PARTY_ICONS_SHOWN; i++){
+        ShowSpeciesIconParty(i, TRUE, PARTY_POKEMON_ICON_X + ((i % 3) * PARTY_POKEMON_SPACE_X), PARTY_POKEMON_ICON_Y_2 + ((i / 3)  * PARTY_POKEMON_SPACE_Y));
+    }
+    
+    PutWindowTilemap(windowId);
+    CopyWindowToVram(windowId, 3);
 }
 
 //Weathers
@@ -4126,8 +4224,8 @@ static void FreeSpeciesIconSprite(u8 battler)
     u8 *spriteId = &sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_SPEED + battler];
     if (*spriteId != SPRITE_NONE)
     {
-        FreeSpriteTilesByTag(TAG_BATTLER_SPEED      + battler - 1);
-        FreeSpritePaletteByTag(TAG_BATTLER_SPEED      + battler - 1);
+        FreeSpriteTilesByTag(TAG_BATTLER_SPEED   + battler - 1);
+        FreeSpritePaletteByTag(TAG_BATTLER_SPEED + battler - 1);
         FreeSpriteOamMatrix(&gSprites[*spriteId]);
         DestroySprite(&gSprites[*spriteId]);
         *spriteId = SPRITE_NONE;
@@ -4138,7 +4236,7 @@ static void FreeSpeciesIconSprite(u8 battler)
 static u8 ShowSpeciesIconSpeed(u8 battler, u8 x, u8 y)
 {
 	u16 species     = gBattleMons[battler].species;
-    u16 personality = gBattleMons[battler].personality;
+    u32 personality = gBattleMons[battler].personality;
 	LoadMonIconPalette(species);
 
     switch(battler){
@@ -4170,6 +4268,74 @@ static u8 ShowSpeciesIconSpeed(u8 battler, u8 x, u8 y)
             }
             return sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_4_SPEED];
         break;
+    }
+}
+
+static u8 ShowSpeciesIconParty(u8 num, bool8 isEnemyParty, u8 x, u8 y)
+{
+    struct Pokemon *party = NULL;
+	u16 species;
+    u32 personality;
+
+    if(isEnemyParty)
+        party = gEnemyParty;
+    else
+        party = gPlayerParty;
+
+    species     = GetMonData(&party[num], MON_DATA_SPECIES, NULL);
+    personality = GetMonData(&party[num], MON_DATA_PERSONALITY, NULL);
+
+	LoadMonIconPalette(species);
+
+    if(species == SPECIES_NONE)
+        return 0;
+
+    if(isEnemyParty){
+        sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_PARTY_ENEMY + num] = CreateMonIcon(species, SpriteCallbackDummy, x, y, 0, personality);
+                    
+        gSprites[sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_PARTY_PLAYER]].invisible = FALSE;
+        return sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_PARTY_PLAYER];
+    }
+    else{
+        sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_PARTY_PLAYER + num] = CreateMonIcon(species, SpriteCallbackDummy, x, y, 0, personality);
+                    
+        gSprites[sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_PARTY_PLAYER + num]].invisible = FALSE;
+        return sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_PARTY_PLAYER + num];
+    }
+
+}
+
+static void FreeEveryPartyMonIconSprite(void)
+{
+    u8 i;
+    for (i = 0; i < PARTY_SIZE; i++)
+        FreePartySpeciesIconSprite(i, FALSE);
+
+    for (i = 0; i < PARTY_SIZE; i++)
+        FreePartySpeciesIconSprite(i, TRUE);
+}
+
+static void FreePartySpeciesIconSprite(u8 num, bool8 isEnemyMon)
+{
+    u8 *spriteId;
+
+    if(isEnemyMon)
+        spriteId = &sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_PARTY_ENEMY + num];
+    else
+        spriteId = &sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_PARTY_PLAYER + num];
+
+    if (*spriteId != SPRITE_NONE)
+    {
+        FreeSpriteTilesByTag(TAG_ICON_PARTY_PLAYER   + num - 1);
+        FreeSpritePaletteByTag(TAG_ICON_PARTY_PLAYER + num - 1);
+        FreeSpriteOamMatrix(&gSprites[*spriteId]);
+        DestroySprite(&gSprites[*spriteId]);
+        *spriteId = SPRITE_NONE;
+
+        if(isEnemyMon)
+            sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_PARTY_ENEMY + num] = SPRITE_NONE;
+        else
+            sMenuDataPtr->spriteIds[SPRITE_ARR_ID_MON_ICON_1_PARTY_PLAYER + num] = SPRITE_NONE;
     }
 }
 
@@ -4247,6 +4413,7 @@ static u8 tabColors[NUM_TABS] = {
 };
 
 static u8 tabColorsField[NUM_FIELD_TABS + 2] = {
+    [TAB_PARTY]             = MENU_COLOR_YELLOW,
     [TAB_FIELD]             = MENU_COLOR_GREEN,
     [TAB_SPEED]             = MENU_COLOR_BLUE,
     [TAB_PLAYER_SIDE]       = MENU_COLOR_RED,
@@ -4319,6 +4486,7 @@ static void PrintPage(void){
     LoadTabPalette();
     FreeItemIconSprite();
     FreeEveryMonIconSprite();
+    FreeEveryPartyMonIconSprite();
     if(sMenuDataPtr->modeId != MODE_FIELD)
         switch(sMenuDataPtr->tabId){
             case TAB_STATS:
@@ -4342,6 +4510,9 @@ static void PrintPage(void){
         }
     else{
         switch(sMenuDataPtr->fieldTabId){
+            case TAB_PARTY:
+                PrintPartyTab();
+            break;
             case TAB_FIELD:
                 PrintFieldTab();
             break;
@@ -4402,6 +4573,8 @@ static void Task_MenuMain(u8 taskId)
         }
         else{
             switch(sMenuDataPtr->fieldTabId){
+                case TAB_PARTY:
+                    PrintPartyTab();
                 case TAB_FIELD:
                     sMenuDataPtr->currentFieldInfo = (sMenuDataPtr->currentFieldInfo + 1) % sMenuDataPtr->numFields;
                     PrintFieldTab();

@@ -224,7 +224,7 @@ u8 BattleAI_ChooseMoveOrAction(void)
     
     // Clear protect structures, some flags may be set during AI calcs
     // e.g. pranksterElevated from GetMovePriority
-    memset(&gProtectStructs[gActiveBattler], 0, sizeof(struct ProtectStruct));
+    memset(&gRoundStructs[gActiveBattler], 0, sizeof(struct RoundStruct));
     
     gCurrentMove = savedCurrentMove;
     return ret;
@@ -368,7 +368,7 @@ static u8 ChooseMoveOrAction_Singles(void)
         // Or is using a double turn semi invulnerable move(such as Fly) and is faster.
         if (BATTLER_HAS_ABILITY_FAST_AI(sBattler_AI, ABILITY_TRUANT)
             && IsTruantMonVulnerable(sBattler_AI, gBattlerTarget)
-            && gDisableStructs[sBattler_AI].truantCounter
+            && gVolatileStructs[sBattler_AI].truantCounter
             && gBattleMons[sBattler_AI].hp >= gBattleMons[sBattler_AI].maxHP / 2)
         {
             if (GetMostSuitableMonToSwitchInto() != PARTY_SIZE)
@@ -600,7 +600,7 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
     if (IsTargetingPartner(battlerAtk, battlerDef))
         return score;
 
-    if(gDisableStructs[battlerAtk].disabledMove == move && gDisableStructs[battlerAtk].disableTimer != 0)
+    if(gVolatileStructs[battlerAtk].disabledMove == move && gVolatileStructs[battlerAtk].disableTimer != 0)
         RETURN_SCORE_MINUS(20);
 
     GET_MOVE_TYPE(move, moveType);
@@ -854,6 +854,10 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
                 if (TestMoveFlags(move, FLAG_SOUND))
                     RETURN_SCORE_MINUS(20);
                 break;
+            case ABILITY_PARROTING:
+                if (TestMoveFlags(move, FLAG_SOUND))
+                    RETURN_SCORE_MINUS(20);
+                break;
             case ABILITY_BULLETPROOF:
                 if (TestMoveFlags(move, FLAG_BALLISTIC))
                     RETURN_SCORE_MINUS(20);
@@ -966,6 +970,9 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
 
         //Soundproof
         if(BattlerHasInnate(battlerDef, ABILITY_NOISE_CANCEL) && TestMoveFlags(move, FLAG_SOUND))
+            RETURN_SCORE_MINUS(20);
+
+        if(BattlerHasInnate(battlerDef, ABILITY_PARROTING) && TestMoveFlags(move, FLAG_SOUND))
             RETURN_SCORE_MINUS(20);
 
         //Queenly Majesty
@@ -1197,7 +1204,7 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
 // the following checks apply to any target (including user)
     
     // throat chop check
-    if (gDisableStructs[battlerAtk].throatChopTimer && TestMoveFlags(move, FLAG_SOUND))
+    if (gVolatileStructs[battlerAtk].throatChopTimer && TestMoveFlags(move, FLAG_SOUND))
         return 0; // Can't even select move at all
     // heal block check
     if (IsHealBlockPreventingMove(battlerAtk, move))
@@ -1697,7 +1704,7 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
                 score -= 3;
             break;
         case EFFECT_DISABLE:
-            if (gDisableStructs[battlerDef].disableTimer == 0
+            if (gVolatileStructs[battlerDef].disableTimer == 0
               && (B_MENTAL_HERB >= GEN_5 && AI_DATA->holdEffects[battlerDef] != HOLD_EFFECT_MENTAL_HERB)
               && !PartnerHasSameMoveEffectWithoutTarget(BATTLE_PARTNER(battlerAtk), move, AI_DATA->partnerMove))
             {
@@ -1717,7 +1724,7 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
             }
             break;
         case EFFECT_ENCORE:
-            if (gDisableStructs[battlerDef].encoreTimer == 0
+            if (gVolatileStructs[battlerDef].encoreTimer == 0
               && (B_MENTAL_HERB >= GEN_5 && AI_DATA->holdEffects[battlerDef] != HOLD_EFFECT_MENTAL_HERB)
               && !DoesPartnerHaveSameMoveEffect(BATTLE_PARTNER(battlerAtk), battlerDef, move, AI_DATA->partnerMove))
             {
@@ -1810,6 +1817,8 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
                   && AI_DATA->abilities[BATTLE_PARTNER(battlerAtk)] != ABILITY_SOUNDPROOF
                   && AI_DATA->abilities[battlerAtk] != ABILITY_NOISE_CANCEL
                   && AI_DATA->abilities[BATTLE_PARTNER(battlerAtk)] != ABILITY_NOISE_CANCEL
+                  && AI_DATA->abilities[battlerAtk] != ABILITY_PARROTING
+                  && AI_DATA->abilities[BATTLE_PARTNER(battlerAtk)] != ABILITY_PARROTING
                   && CountUsablePartyMons(FOE(battlerAtk)) >= 1)
                 {
                     score -= 10; //Don't wipe your team if you're going to lose
@@ -1821,6 +1830,7 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
                   && (!IsBattlerAlive(BATTLE_PARTNER(FOE(battlerAtk))) || AI_DATA->abilities[BATTLE_PARTNER(FOE(battlerAtk))] == ABILITY_SOUNDPROOF
                   || AI_DATA->abilities[FOE(battlerAtk)] == ABILITY_NOISE_CANCEL
                   || AI_DATA->abilities[BATTLE_PARTNER(FOE(battlerAtk))] == ABILITY_NOISE_CANCEL
+                  || AI_DATA->abilities[FOE(battlerAtk)] == ABILITY_PARROTING
                   || gStatuses3[BATTLE_PARTNER(FOE(battlerAtk))] & STATUS3_PERISH_SONG))
                 {
                     score -= 10; //Both enemies are perish songed
@@ -1833,13 +1843,15 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
             else
             {
                 if (CountUsablePartyMons(battlerAtk) == 0 && (AI_DATA->abilities[battlerAtk] != ABILITY_SOUNDPROOF
-                  || AI_DATA->abilities[battlerAtk] != ABILITY_NOISE_CANCEL)
+                  || AI_DATA->abilities[battlerAtk] != ABILITY_NOISE_CANCEL
+                  || AI_DATA->abilities[battlerAtk] != ABILITY_PARROTING)
                   && CountUsablePartyMons(battlerDef) >= 1)
                     score -= 10;
 
                 if (gStatuses3[FOE(battlerAtk)] & STATUS3_PERISH_SONG || AI_DATA->abilities[FOE(battlerAtk)] == ABILITY_SOUNDPROOF
                   || AI_DATA->abilities[FOE(battlerAtk)] == ABILITY_NOISE_CANCEL
-                  || AI_DATA->abilities[BATTLE_PARTNER(FOE(battlerAtk))] == ABILITY_NOISE_CANCEL)
+                  || AI_DATA->abilities[BATTLE_PARTNER(FOE(battlerAtk))] == ABILITY_NOISE_CANCEL
+                  || AI_DATA->abilities[FOE(battlerAtk)] == ABILITY_PARROTING)
                     score -= 10;
             }
             break;
@@ -1918,7 +1930,7 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
             score -= 10;
             break;
         case EFFECT_FAKE_OUT:
-            if (!gDisableStructs[battlerAtk].isFirstTurn)
+            if (!gVolatileStructs[battlerAtk].isFirstTurn)
             {
                 score -= 30;
             }
@@ -1933,15 +1945,15 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
             }
             break;
         case EFFECT_STOCKPILE:
-            if (gDisableStructs[battlerAtk].stockpileCounter >= 3)
+            if (gVolatileStructs[battlerAtk].stockpileCounter >= 3)
                 score -= 10;
             break;
         case EFFECT_SPIT_UP:
-            if (gDisableStructs[battlerAtk].stockpileCounter <= 1)
+            if (gVolatileStructs[battlerAtk].stockpileCounter <= 1)
                 score -= 10;
             break;
         case EFFECT_SWALLOW:
-            if (gDisableStructs[battlerAtk].stockpileCounter == 0)
+            if (gVolatileStructs[battlerAtk].stockpileCounter == 0)
             {
                 score -= 10;
             }
@@ -2263,7 +2275,7 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
                     }
                     break;
                 case MOVE_MAT_BLOCK:
-                    if (!gDisableStructs[battlerAtk].isFirstTurn)
+                    if (!gVolatileStructs[battlerAtk].isFirstTurn)
                     {
                         score -= 10;
                         decreased = TRUE;
@@ -2289,14 +2301,14 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
                     {
                         score -= 10; //Don't protect if you're going to faint after protecting
                     }
-                    else if (gDisableStructs[battlerAtk].protectUses == 1 && Random() % 100 < 50)
+                    else if (gVolatileStructs[battlerAtk].protectUses == 1 && Random() % 100 < 50)
                     {
                         if (!isDoubleBattle)
                             score -= 6;
                         else
                             score -= 10; //Don't try double protecting in doubles
                     }
-                    else if (gDisableStructs[battlerAtk].protectUses >= 2)
+                    else if (gVolatileStructs[battlerAtk].protectUses >= 2)
                     {
                         score -= 10;
                     }
@@ -2409,10 +2421,10 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
         case EFFECT_NATURE_POWER:
             return AI_CheckBadMove(battlerAtk, battlerDef, GetNaturePowerMove(), score);
         case EFFECT_TAUNT:
-            if (gDisableStructs[battlerDef].tauntTimer > 0
+            if (gVolatileStructs[battlerDef].tauntTimer > 0
               || DoesPartnerHaveSameMoveEffect(BATTLE_PARTNER(battlerAtk), battlerDef, move, AI_DATA->partnerMove))
                 score--;
-            if (gDisableStructs[battlerDef].tauntTimer != 0)
+            if (gVolatileStructs[battlerDef].tauntTimer != 0)
                 score -= 10;
             break;
         case EFFECT_BESTOW:
@@ -2672,7 +2684,7 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
         case EFFECT_EMBARGO:
             if (AI_DATA->abilities[battlerDef] == ABILITY_KLUTZ
               || isMagicRoomActive()
-              || gDisableStructs[battlerDef].embargoTimer != 0
+              || gVolatileStructs[battlerDef].embargoTimer != 0
               || PartnerMoveIsSameAsAttacker(BATTLE_PARTNER(battlerAtk), battlerDef, move, AI_DATA->partnerMove))
                 score -= 10;
             break;
@@ -2692,7 +2704,7 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
         case EFFECT_THROAT_CHOP:
             break;
         case EFFECT_HEAL_BLOCK:
-            if (gDisableStructs[battlerDef].healBlockTimer != 0
+            if (gVolatileStructs[battlerDef].healBlockTimer != 0
               || PartnerMoveIsSameAsAttacker(BATTLE_PARTNER(battlerAtk), battlerDef, move, AI_DATA->partnerMove))
                 score -= 10;
             break;
@@ -2842,7 +2854,7 @@ static s16 AI_CheckBadMove(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
             break;
         case EFFECT_MAGNET_RISE:
             if (IsGravityActive()
-              ||  gDisableStructs[battlerAtk].magnetRiseTimer != 0
+              ||  gVolatileStructs[battlerAtk].magnetRiseTimer != 0
               || AI_DATA->holdEffects[battlerAtk] == HOLD_EFFECT_IRON_BALL
               || gStatuses3[battlerAtk] & (STATUS3_ROOTED | STATUS3_MAGNET_RISE | STATUS3_SMACKED_DOWN)
               || !IsBattlerGrounded(battlerAtk))
@@ -3773,14 +3785,14 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
         score += ShouldTryToFlinch(battlerAtk, battlerDef, AI_DATA->abilities[battlerAtk], AI_DATA->abilities[battlerDef], move);
         break;
     case EFFECT_SWALLOW:
-        if (gDisableStructs[battlerAtk].stockpileCounter == 0)
+        if (gVolatileStructs[battlerAtk].stockpileCounter == 0)
         {
             break;
         }
         else
         {
             u32 healPercent = 0;
-            switch (gDisableStructs[battlerAtk].stockpileCounter)
+            switch (gVolatileStructs[battlerAtk].stockpileCounter)
             {
             case 1:
                 healPercent = 25;
@@ -3989,7 +4001,7 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
             score += 5;
         break;
     case EFFECT_DISABLE:
-        if (gDisableStructs[battlerDef].disableTimer == 0
+        if (gVolatileStructs[battlerDef].disableTimer == 0
           && (B_MENTAL_HERB >= GEN_5 && AI_DATA->holdEffects[battlerDef] != HOLD_EFFECT_MENTAL_HERB))    // mental herb
         {
             if (GetWhoStrikesFirst(battlerAtk, battlerDef, TRUE) == 0)  // AI goes first
@@ -4011,7 +4023,7 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
         }
         break;
     case EFFECT_ENCORE:
-        if (gDisableStructs[battlerDef].encoreTimer == 0
+        if (gVolatileStructs[battlerDef].encoreTimer == 0
           && (B_MENTAL_HERB >= GEN_5 && AI_DATA->holdEffects[battlerDef] != HOLD_EFFECT_MENTAL_HERB))    // mental herb
         {
             if (IsEncoreEncouragedEffect(gBattleMoves[gLastMoves[battlerDef]].effect))
@@ -4091,6 +4103,10 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
                     if (ShouldBurnSelf(battlerAtk))
                         score += 2;
                     break;
+                case HOLD_EFFECT_FROST_ORB:
+                    if (ShouldFrostbiteSelf(battlerAtk))
+                        score += 2;
+                    break;
                 case HOLD_EFFECT_BLACK_SLUDGE:
                     if (IS_BATTLER_OF_TYPE(battlerAtk, TYPE_POISON))
                         score += 2;
@@ -4167,7 +4183,7 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
             break;
 
         case MOVE_MAT_BLOCK:
-            if (gDisableStructs[battlerAtk].isFirstTurn && predictedMove != MOVE_NONE
+            if (gVolatileStructs[battlerAtk].isFirstTurn && predictedMove != MOVE_NONE
               && !IS_MOVE_STATUS(predictedMove) && !(gBattleMoves[predictedMove].target & MOVE_TARGET_USER))
                 ProtectChecks(battlerAtk, battlerDef, move, predictedMove, &score);
             break;
@@ -4202,7 +4218,7 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
     case EFFECT_TOXIC_SPIKES:
         if (AI_DATA->abilities[battlerDef] == ABILITY_MAGIC_BOUNCE || CountUsablePartyMons(battlerDef) == 0)
             break;
-        if (gDisableStructs[battlerAtk].isFirstTurn)
+        if (gVolatileStructs[battlerAtk].isFirstTurn)
             score += 2;        
         //TODO - track entire opponent party data to determine hazard effectiveness 
         break;
@@ -4365,7 +4381,7 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
         IncreaseStatUpScore(battlerAtk, battlerDef, STAT_SPDEF, &score);
         break;
     case EFFECT_SPIT_UP:
-        if (gDisableStructs[battlerAtk].stockpileCounter >= 2)
+        if (gVolatileStructs[battlerAtk].stockpileCounter >= 2)
             score++;
         break;
     case EFFECT_ROLLOUT:
@@ -4519,6 +4535,10 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
             if (!ShouldBurnSelf(battlerAtk))
                 score += 2;
             break;
+        case HOLD_EFFECT_FROST_ORB:
+            if (!ShouldFrostbiteSelf(battlerAtk))
+                score += 2;
+            break;
         case HOLD_EFFECT_BLACK_SLUDGE:
             if (!IS_BATTLER_OF_TYPE(battlerDef, TYPE_POISON) && !BATTLER_HAS_ABILITY_FAST_AI(battlerDef, ABILITY_MAGIC_GUARD))
                 score += 3;
@@ -4567,6 +4587,10 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
                     break;
                 case HOLD_EFFECT_FLAME_ORB:
                     if (ShouldBurnSelf(battlerAtk))
+                        score += 2;
+                    break;
+                case HOLD_EFFECT_FROST_ORB:
+                    if (ShouldFrostbiteSelf(battlerAtk))
                         score += 2;
                     break;
                 case HOLD_EFFECT_BLACK_SLUDGE:
@@ -4679,7 +4703,7 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
     case EFFECT_IMPRISON:
         if (predictedMove != MOVE_NONE && HasMove(battlerAtk, predictedMove))
             score += 3;
-        else if (gDisableStructs[battlerAtk].isFirstTurn == 0)
+        else if (gVolatileStructs[battlerAtk].isFirstTurn == 0)
             score++;
         break;
     case EFFECT_REFRESH:
@@ -5056,7 +5080,7 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
     case EFFECT_COUNTER:
         if (!IsBattlerIncapacitated(battlerDef, AI_DATA->abilities[battlerDef]) && predictedMove != MOVE_NONE)
         {
-            if (gDisableStructs[battlerDef].tauntTimer != 0)
+            if (gVolatileStructs[battlerDef].tauntTimer != 0)
                 score++;    // target must use damaging move
             if (GetMoveDamageResult(predictedMove) >= MOVE_POWER_GOOD && GetBattleMoveSplit(predictedMove) == SPLIT_PHYSICAL)
                 score += 3;
@@ -5065,7 +5089,7 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
     case EFFECT_MIRROR_COAT:
         if (!IsBattlerIncapacitated(battlerDef, AI_DATA->abilities[battlerDef]) && predictedMove != MOVE_NONE)
         {
-            if (gDisableStructs[battlerDef].tauntTimer != 0)
+            if (gVolatileStructs[battlerDef].tauntTimer != 0)
                 score++;    // target must use damaging move
             if (GetMoveDamageResult(predictedMove) >= MOVE_POWER_GOOD && GetBattleMoveSplit(predictedMove) == SPLIT_SPECIAL)
                 score += 3;
@@ -5074,7 +5098,7 @@ static s16 AI_CheckViability(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
     case EFFECT_METAL_BURST:
         if (!IsBattlerIncapacitated(battlerDef, AI_DATA->abilities[battlerDef]) && predictedMove != MOVE_NONE)
         {
-            if (gDisableStructs[battlerDef].tauntTimer != 0)
+            if (gVolatileStructs[battlerDef].tauntTimer != 0)
                 score++;    // target must use damaging move
             if (GetMoveDamageResult(predictedMove) >= MOVE_POWER_GOOD && GetWhoStrikesFirst(battlerAtk, battlerDef, TRUE) != 0)
                 score += 3;
@@ -5603,15 +5627,15 @@ static s16 AI_FirstBattle(u8 battlerAtk, u8 battlerDef, u16 move, s16 score)
 bool8 BattlerHasInnate(u8 battlerId, u16 ability){
     if (!DoesBattlerHaveAbilityShield(battlerId))
     {
-        if (BattlerInnatesSuppressed(battlerId, ability))
+        if (BattlerInnatesSuppressed(battlerId, gBattlerAttacker, ability))
             return FALSE;
     }
     
     return BattlerHasInnateWithoutRemoval(battlerId, ability);
 }
 
-bool8 BattlerInnatesSuppressed(u8 battlerId, u16 ability) {
-    if(B_MOLD_BREAKER_WORKS_ON_INNATES == TRUE && BattlerIgnoresAbility(gBattlerAttacker, battlerId, ability))
+bool8 BattlerInnatesSuppressed(u8 battlerId, u8 attacker, u16 ability) {
+    if(B_MOLD_BREAKER_WORKS_ON_INNATES == TRUE && BattlerIgnoresAbility(attacker, battlerId, ability))
         return TRUE;
     if(B_NEUTRALIZING_GAS_WORKS_ON_INNATES == TRUE && BattlerAbilityWasRemoved(battlerId, ability))
         return TRUE;

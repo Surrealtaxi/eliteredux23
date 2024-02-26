@@ -270,7 +270,6 @@ static void HandleInputChooseAction(void)
         else
             gPlayerDpadHoldFrames = 0;
 
-        
         if (JOY_NEW(A_BUTTON) && 
             gActionSelectionCursor[gActiveBattler] == 1 &&
             gBattleTypeFlags & BATTLE_TYPE_TRAINER)
@@ -286,6 +285,7 @@ static void HandleInputChooseAction(void)
         {
             PlaySE(SE_SELECT);
             TryHideLastUsedBall();
+            TryToHideEnemyInfoWindow();
 
             switch (gActionSelectionCursor[gActiveBattler])
             {
@@ -310,7 +310,8 @@ static void HandleInputChooseAction(void)
             VarSet(VAR_BATTLE_CONTROLLER_PLAYER_F, value);
             BeginNormalPaletteFade(0xFFFFFFFF, 0, 0, 0x10, RGB_BLACK);
             FreeAllWindowBuffers();
-            ShowPokemonSummaryScreen(SUMMARY_MODE_LOCK_MOVES, gEnemyParty, gBattlerPartyIndexes[1], CalculateEnemyPartyCount() - 1, CB2_SetUpReshowBattleScreenAfterMenu);
+            UI_Battle_Menu_Init(CB2_SetUpReshowBattleScreenAfterMenu);
+            //ShowPokemonSummaryScreen(SUMMARY_MODE_LOCK_MOVES, gEnemyParty, gBattlerPartyIndexes[1], CalculateEnemyPartyCount() - 1, CB2_SetUpReshowBattleScreenAfterMenu);
         }
         else if (JOY_NEW(DPAD_LEFT))
         {
@@ -386,6 +387,7 @@ static void HandleInputChooseAction(void)
         {
             PlaySE(SE_SELECT);
             TryHideLastUsedBall();
+            TryToHideEnemyInfoWindow();
             BtlController_EmitTwoReturnValues(1, B_ACTION_THROW_BALL, 0);
             PlayerBufferExecCompleted();
         }
@@ -428,6 +430,7 @@ static void HandleInputChooseTarget(void)
             BtlController_EmitTwoReturnValues(1, 10, gMoveSelectionCursor[gActiveBattler] | (gMultiUsePlayerCursor << 8));
         EndBounceEffect(gMultiUsePlayerCursor, BOUNCE_HEALTHBOX);
         TryHideLastUsedBall();
+        TryToHideEnemyInfoWindow();
         HideMegaTriggerSprite();
         PlayerBufferExecCompleted();
     }
@@ -614,6 +617,7 @@ static void HandleInputShowTargets(void)
             BtlController_EmitTwoReturnValues(1, 10, gMoveSelectionCursor[gActiveBattler] | (gMultiUsePlayerCursor << 8));
         HideMegaTriggerSprite();
         TryHideLastUsedBall();
+        TryToHideEnemyInfoWindow();
         PlayerBufferExecCompleted();
     }
     else if (gMain.newKeys & B_BUTTON || gPlayerDpadHoldFrames > 59)
@@ -722,6 +726,7 @@ static void HandleInputChooseMove(void)
                 BtlController_EmitTwoReturnValues(1, 10, gMoveSelectionCursor[gActiveBattler] | (gMultiUsePlayerCursor << 8));
             HideMegaTriggerSprite();
             TryHideLastUsedBall();
+            TryToHideEnemyInfoWindow();
             PlayerBufferExecCompleted();
             break;
         case 1:
@@ -924,10 +929,10 @@ static void HandleMoveSwitching(void)
             moveInfo->maxPp[gMoveSelectionCursor[gActiveBattler]] = moveInfo->maxPp[gMultiUsePlayerCursor];
             moveInfo->maxPp[gMultiUsePlayerCursor] = i;
 
-            if (gDisableStructs[gActiveBattler].mimickedMoves & gBitTable[gMoveSelectionCursor[gActiveBattler]])
+            if (gVolatileStructs[gActiveBattler].mimickedMoves & gBitTable[gMoveSelectionCursor[gActiveBattler]])
             {
-                gDisableStructs[gActiveBattler].mimickedMoves &= (~gBitTable[gMoveSelectionCursor[gActiveBattler]]);
-                gDisableStructs[gActiveBattler].mimickedMoves |= gBitTable[gMultiUsePlayerCursor];
+                gVolatileStructs[gActiveBattler].mimickedMoves &= (~gBitTable[gMoveSelectionCursor[gActiveBattler]]);
+                gVolatileStructs[gActiveBattler].mimickedMoves |= gBitTable[gMultiUsePlayerCursor];
             }
 
             MoveSelectionDisplayMoveNames();
@@ -2421,7 +2426,7 @@ static u8 GetMoveTypeEffectivenessStatus(u16 moveNum, u8 targetId, u8 userId)
     u16 userSpecies = gBattleMons[userId].species;
     u16 targetSpecies = gBattleMons[targetId].species;
 
-    if (BATTLER_HAS_ABILITY(userId, ABILITY_MYCELIUM_MIGHT) && gBattleMoves[moveNum].split == SPLIT_STATUS && gBattleMoves[moveNum].target & !MOVE_TARGET_USER) {
+    if (BattlerHasAbility(userId, userId, ABILITY_MYCELIUM_MIGHT) && gBattleMoves[moveNum].split == SPLIT_STATUS && gBattleMoves[moveNum].target & !MOVE_TARGET_USER) {
         switch(gBattleMoves[moveNum].effect){
             case EFFECT_SLEEP:
             case EFFECT_TOXIC:
@@ -2491,53 +2496,67 @@ static u8 GetMoveTypeEffectivenessStatus(u16 moveNum, u8 targetId, u8 userId)
     }
 
     //Weather Control
-    if(gBattleMons[targetId].ability == ABILITY_WEATHER_CONTROL || BattlerHasInnate(targetId, ABILITY_WEATHER_CONTROL)){
+    if(DoesTargetHaveAbilityOrInnate(targetId, userId, ABILITY_WEATHER_CONTROL, moveNum)){
+        if(TestMoveFlags(moveNum, FLAG_WEATHER_BASED)){
+            moveNullified = TRUE;
+        }
+    }
+
+    // Delta Stream
+    if(BattlerHasAbility(userId, userId, ABILITY_DELTA_STREAM)){
         if(TestMoveFlags(moveNum, FLAG_WEATHER_BASED)){
             moveNullified = TRUE;
         }
     }
             
     //Bulletproof
-    if(gBattleMons[targetId].ability == ABILITY_BULLETPROOF || BattlerHasInnate(targetId, ABILITY_BULLETPROOF)){
+    if(DoesTargetHaveAbilityOrInnate(targetId, userId, ABILITY_BULLETPROOF, moveNum)){
         if(TestMoveFlags(moveNum, FLAG_BALLISTIC)){
             moveNullified = TRUE;
         }
     }
 
     //Soundproof
-    if(gBattleMons[targetId].ability == ABILITY_SOUNDPROOF || BattlerHasInnate(targetId, ABILITY_SOUNDPROOF)){
+    if(DoesTargetHaveAbilityOrInnate(targetId, userId, ABILITY_SOUNDPROOF, moveNum)){
+        if(TestMoveFlags(moveNum, FLAG_SOUND)){
+            moveNullified = TRUE;
+        }
+    }
+
+    //Parroting
+    if(DoesTargetHaveAbilityOrInnate(targetId, userId, ABILITY_PARROTING, moveNum)){
         if(TestMoveFlags(moveNum, FLAG_SOUND)){
             moveNullified = TRUE;
         }
     }
 
     //Noise Cancel
-    if(gBattleMons[targetId].ability == ABILITY_NOISE_CANCEL || BattlerHasInnate(targetId, ABILITY_NOISE_CANCEL) ||
-    (gBattleMons[BATTLE_PARTNER(targetId)].ability == ABILITY_NOISE_CANCEL && IsBattlerAlive(BATTLE_PARTNER(targetId))) || (BattlerHasInnate(BATTLE_PARTNER(targetId), ABILITY_NOISE_CANCEL) && IsBattlerAlive(BATTLE_PARTNER(targetId)))){
+    if(DoesTargetHaveAbilityOrInnate(targetId, userId, ABILITY_NOISE_CANCEL, moveNum)
+        || (DoesTargetHaveAbilityOrInnate(BATTLE_PARTNER(targetId), userId, ABILITY_NOISE_CANCEL, moveNum) && IsBattlerAlive(BATTLE_PARTNER(targetId)))){
         if(TestMoveFlags(moveNum, FLAG_SOUND)){
             moveNullified = TRUE;
         }
     }
 
     //Queenly Majesty
-    if(gBattleMons[targetId].ability == ABILITY_QUEENLY_MAJESTY || BattlerHasInnate(targetId, ABILITY_QUEENLY_MAJESTY) ||
-    (gBattleMons[BATTLE_PARTNER(targetId)].ability == ABILITY_QUEENLY_MAJESTY && IsBattlerAlive(BATTLE_PARTNER(targetId))) || (BattlerHasInnate(BATTLE_PARTNER(targetId), ABILITY_QUEENLY_MAJESTY) && IsBattlerAlive(BATTLE_PARTNER(targetId)))){
+    if(DoesTargetHaveAbilityOrInnate(targetId, userId, ABILITY_QUEENLY_MAJESTY, moveNum)
+        || (DoesTargetHaveAbilityOrInnate(BATTLE_PARTNER(targetId), userId, ABILITY_QUEENLY_MAJESTY, moveNum) && IsBattlerAlive(BATTLE_PARTNER(targetId)))){
         if(GetMovePriority(userId, moveNum, targetId) > 0 && gBattleMoves[moveNum].target != MOVE_TARGET_USER){
             moveNullified = TRUE;
         }
     }
 
     //Dazzling
-    if(gBattleMons[targetId].ability == ABILITY_DAZZLING || BattlerHasInnate(targetId, ABILITY_DAZZLING) ||
-        (gBattleMons[BATTLE_PARTNER(targetId)].ability == ABILITY_DAZZLING && IsBattlerAlive(BATTLE_PARTNER(targetId))) || (BattlerHasInnate(BATTLE_PARTNER(targetId), ABILITY_DAZZLING) && IsBattlerAlive(BATTLE_PARTNER(targetId)))){
+    if(DoesTargetHaveAbilityOrInnate(targetId, userId, ABILITY_DAZZLING, moveNum)
+        || (DoesTargetHaveAbilityOrInnate(BATTLE_PARTNER(targetId), userId, ABILITY_DAZZLING, moveNum) && IsBattlerAlive(BATTLE_PARTNER(targetId)))){
         if(GetMovePriority(userId, moveNum, targetId) > 0 && gBattleMoves[moveNum].target != MOVE_TARGET_USER){
             moveNullified = TRUE;
         }
     }
 
     //Armor Tail
-    if(gBattleMons[targetId].ability == ABILITY_ARMOR_TAIL || BattlerHasInnate(targetId, ABILITY_ARMOR_TAIL) ||
-        (gBattleMons[BATTLE_PARTNER(targetId)].ability == ABILITY_ARMOR_TAIL && IsBattlerAlive(BATTLE_PARTNER(targetId))) || (BattlerHasInnate(BATTLE_PARTNER(targetId), ABILITY_ARMOR_TAIL) && IsBattlerAlive(BATTLE_PARTNER(targetId)))){
+    if (DoesTargetHaveAbilityOrInnate(targetId, userId, ABILITY_ARMOR_TAIL, moveNum)
+        || (DoesTargetHaveAbilityOrInnate(BATTLE_PARTNER(targetId), userId, ABILITY_ARMOR_TAIL, moveNum) && IsBattlerAlive(BATTLE_PARTNER(targetId)))){
         if(GetMovePriority(userId, moveNum, targetId) > 0 && gBattleMoves[moveNum].target != MOVE_TARGET_USER){
             moveNullified = TRUE;
         }
@@ -3644,8 +3663,8 @@ static void PlayerHandleMoveAnimation(void)
         gAnimMoveDmg = gBattleResources->bufferA[gActiveBattler][6] | (gBattleResources->bufferA[gActiveBattler][7] << 8) | (gBattleResources->bufferA[gActiveBattler][8] << 16) | (gBattleResources->bufferA[gActiveBattler][9] << 24);
         gAnimFriendship = gBattleResources->bufferA[gActiveBattler][10];
         gWeatherMoveAnim = gBattleResources->bufferA[gActiveBattler][12] | (gBattleResources->bufferA[gActiveBattler][13] << 8);
-        gAnimDisableStructPtr = (struct DisableStruct *)&gBattleResources->bufferA[gActiveBattler][16];
-        gTransformedPersonalities[gActiveBattler] = gAnimDisableStructPtr->transformedMonPersonality;
+        gAnimVolatileStructPtr = (struct VolatileStruct *)&gBattleResources->bufferA[gActiveBattler][16];
+        gTransformedPersonalities[gActiveBattler] = gAnimVolatileStructPtr->transformedMonPersonality;
         if (IsMoveWithoutAnimation(move, gAnimMoveTurn)) // Always returns FALSE.
         {
             PlayerBufferExecCompleted();
@@ -3654,7 +3673,7 @@ static void PlayerHandleMoveAnimation(void)
         {
             gBattleSpritesDataPtr->healthBoxesData[gActiveBattler].animationState = 0;
             gBattlerControllerFuncs[gActiveBattler] = PlayerDoMoveAnimation;
-            BattleTv_SetDataBasedOnMove(move, gWeatherMoveAnim, gAnimDisableStructPtr);
+            BattleTv_SetDataBasedOnMove(move, gWeatherMoveAnim, gAnimVolatileStructPtr);
         }
     }
 }
@@ -3755,8 +3774,9 @@ static void PlayerHandleChooseAction(void)
     for (i = 0; i < 4; i++)
         ActionSelectionDestroyCursorAt(i);
 
+    TryToHideMoveInfoWindow();
     TryRestoreLastUsedBall();
-    //TryToAddEnemyInfoWindow();
+    TryToAddEnemyInfoWindow();
     ActionSelectionCreateCursorAt(gActionSelectionCursor[gActiveBattler], 0);
     BattleStringExpandPlaceholdersToDisplayedString(gText_WhatWillPkmnDo);
     BattlePutTextOnWindow(gDisplayedStringBattle, 1);

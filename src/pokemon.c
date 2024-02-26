@@ -1339,6 +1339,7 @@ const u16 gSpeciesToNationalPokedexNum[NUM_SPECIES] = // Assigns all species to 
     SPECIES_TO_NATIONAL(BASCULEGION),
     SPECIES_TO_NATIONAL(PHANTOWL),
     SPECIES_TO_NATIONAL(DUELUMBER),
+    SPECIES_TO_NATIONAL(ESCARGINITE),
 
     // Megas
     [SPECIES_VENUSAUR_MEGA - 1] = NATIONAL_DEX_VENUSAUR,
@@ -1761,6 +1762,48 @@ const u16 gSpeciesToNationalPokedexNum[NUM_SPECIES] = // Assigns all species to 
     // Calyrex
     [SPECIES_CALYREX_ICE_RIDER - 1] = NATIONAL_DEX_CALYREX,
     [SPECIES_CALYREX_SHADOW_RIDER - 1] = NATIONAL_DEX_CALYREX,
+
+    [SPECIES_QWILFISH_HISUIAN - 1] = NATIONAL_DEX_QWILFISH,
+    [SPECIES_GROWLITHE_HISUIAN - 1] = NATIONAL_DEX_GROWLITHE,
+    [SPECIES_ARCANINE_HISUIAN - 1] = NATIONAL_DEX_ARCANINE,
+    [SPECIES_VOLTORB_HISUIAN - 1] = NATIONAL_DEX_VOLTORB,
+    [SPECIES_ELECTRODE_HISUIAN - 1] = NATIONAL_DEX_ELECTRODE,
+    [SPECIES_TYPHLOSION_HISUIAN - 1] = NATIONAL_DEX_TYPHLOSION,
+    [SPECIES_SNEASEL_HISUIAN - 1] = NATIONAL_DEX_SNEASEL,
+    [SPECIES_SAMUROTT_HISUIAN - 1] = NATIONAL_DEX_SAMUROTT,
+    [SPECIES_LILLIGANT_HISUIAN - 1] = NATIONAL_DEX_LILLIGANT,
+    [SPECIES_BRAVIARY_HISUIAN - 1] = NATIONAL_DEX_BRAVIARY,
+    [SPECIES_SLIGGOO_HISUIAN - 1] = NATIONAL_DEX_SLIGGOO,
+    [SPECIES_GOODRA_HISUIAN - 1] = NATIONAL_DEX_GOODRA,
+    [SPECIES_AVALUGG_HISUIAN - 1] = NATIONAL_DEX_AVALUGG,
+    [SPECIES_DECIDUEYE_HISUIAN - 1] = NATIONAL_DEX_DECIDUEYE,
+    [SPECIES_ZORUA_HISUIAN - 1] = NATIONAL_DEX_ZORUA,
+    [SPECIES_ZOROARK_HISUIAN - 1] = NATIONAL_DEX_ZOROARK,
+    
+    [SPECIES_URSALUNA_MEGA - 1] = NATIONAL_DEX_URSALUNA,
+    [SPECIES_URSALUNA_MOONBLOOD - 1] = NATIONAL_DEX_URSALUNA,
+    
+    [SPECIES_DUDUNSPARCE_THREE_SEGMENT - 1] = NATIONAL_DEX_DUDUNSPARCE,
+    [SPECIES_MAUSHOLD_FOUR - 1] = NATIONAL_DEX_MAUSHOLD,
+    
+    [SPECIES_TATSUGIRI_CURLY - 1] = NATIONAL_DEX_TATSUGIRI,
+    [SPECIES_TATSUGIRI_STRETCHY - 1] = NATIONAL_DEX_TATSUGIRI,
+    [SPECIES_TATSUGIRI_DROOPY - 1] = NATIONAL_DEX_TATSUGIRI,
+
+    [SPECIES_SQUAWKABILLY_GREEN_PLUMAGE - 1] = NATIONAL_DEX_SQUAWKABILLY,
+    [SPECIES_SQUAWKABILLY_BLUE_PLUMAGE - 1] = NATIONAL_DEX_SQUAWKABILLY,
+    [SPECIES_SQUAWKABILLY_YELLOW_PLUMAGE - 1] = NATIONAL_DEX_SQUAWKABILLY,
+    [SPECIES_SQUAWKABILLY_WHITE_PLUMAGE - 1] = NATIONAL_DEX_SQUAWKABILLY,
+
+    [SPECIES_OGERPON_WELLSPRING_MASK - 1] = NATIONAL_DEX_OGERPON,
+    [SPECIES_OGERPON_HEARTHFLAME_MASK - 1] = NATIONAL_DEX_OGERPON,
+    [SPECIES_OGERPON_CORNERSTONE_MASK - 1] = NATIONAL_DEX_OGERPON,
+
+    [SPECIES_PALAFIN_HERO - 1] = NATIONAL_DEX_PALAFIN,
+
+    [SPECIES_TAUROS_PALDEAN_AQUA_BREED - 1] = NATIONAL_DEX_TAUROS,
+    [SPECIES_TAUROS_PALDEAN_BLAZE_BREED - 1] = NATIONAL_DEX_TAUROS,
+    [SPECIES_TAUROS_PALDEAN_COMBAT_BREED - 1] = NATIONAL_DEX_TAUROS,
 
     // Redux
     [SPECIES_INFERNAPE_REDUX - 1]         = NATIONAL_DEX_INFERNAPE,
@@ -3098,6 +3141,7 @@ static const u8 sMonFrontAnimIdsTable[NUM_SPECIES - 1] =
     [SPECIES_OGERPON - 1]       = ANIM_V_SQUISH_AND_BOUNCE,
     [SPECIES_PHANTOWL - 1]      = ANIM_V_SQUISH_AND_BOUNCE,
     [SPECIES_DUELUMBER - 1]     = ANIM_V_SQUISH_AND_BOUNCE,
+    [SPECIES_ESCARGINITE - 1]   = ANIM_V_SQUISH_AND_BOUNCE,
     [SPECIES_SCIZOR_REDUX - 1]   = ANIM_V_SQUISH_AND_BOUNCE,
     [SPECIES_SCIZOR_MEGA_REDUX - 1] = ANIM_V_SQUISH_AND_BOUNCE,
     [SPECIES_URSALUNA_MEGA - 1]  = ANIM_V_SQUISH_AND_BOUNCE,
@@ -6382,7 +6426,7 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
                                     // Heal battler PP too (if applicable)
                                     if (gMain.inBattle
                                      && battlerId != MAX_BATTLERS_COUNT && !(gBattleMons[battlerId].status2 & STATUS2_TRANSFORMED)
-                                     && !(gDisableStructs[battlerId].mimickedMoves & gBitTable[temp2]))
+                                     && !(gVolatileStructs[battlerId].mimickedMoves & gBitTable[temp2]))
                                         gBattleMons[battlerId].pp[temp2] = dataUnsigned;
 
                                     retVal = FALSE;
@@ -6410,7 +6454,7 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
                                 // Heal battler PP too (if applicable)
                                 if (gMain.inBattle
                                  && battlerId != MAX_BATTLERS_COUNT && !(gBattleMons[battlerId].status2 & STATUS2_TRANSFORMED)
-                                 && !(gDisableStructs[battlerId].mimickedMoves & gBitTable[moveIndex]))
+                                 && !(gVolatileStructs[battlerId].mimickedMoves & gBitTable[moveIndex]))
                                     gBattleMons[battlerId].pp[moveIndex] = dataUnsigned;
 
                                 retVal = FALSE;
@@ -9916,7 +9960,7 @@ u16 GetRandomPokemonFromSpecies(u16 basespecies){
 bool8 isSpeciesPlaceholderMon(u16 species){
     if(species == SPECIES_NONE)
         return FALSE;
-    else if(species < SPECIES_DUELUMBER + 1)
+    else if(species < SPECIES_ESCARGINITE + 1)
         return FALSE;
     else if(species <= FORMS_START)
         return TRUE;

@@ -564,7 +564,7 @@
 #define ABILITY_SHOWDOWN_MODE 542 // Ambush + Violent Rush.
 #define ABILITY_SEED_SOWER 543 // Sets Grassy Terrain and Leech Seed when hit.
 #define ABILITY_AIRBORNE 544 // Boosts own and ally's Flying moves by 30%.
-#define ABILITY_PARROTING 545 // Placeholder
+#define ABILITY_PARROTING 545 // Copies sound moves used by others. Immune to sound.
 #define ABILITY_BLOCK_ON_ENTRY 546 // Prevents opposing pokemon from fleeing on entry.
 #define ABILITY_PURIFYING_SALT 547 // Immune to status conditions. Take half damage from Ghost.
 #define ABILITY_PROTOSYNTHESIS 548 // Boosts highest stat in Sun or with Booster Energy.
@@ -621,8 +621,9 @@
 #define ABILITY_DEAD_POWER 599 // 1.5x Attack boost. 20% chance to curse on contact moves.
 #define ABILITY_BRAWLING_WYVERN 600 // Dragon type moves become punching moves.
 #define ABILITY_MYTHICAL_ARROWS 601 // Arrow moves do special damage and deal 30% more damage.
+#define ABILITY_LAWNMOWER 602 // Removes terrain on switch-in. Stat up if terrain removed.
 
-#define ABILITIES_COUNT_CUSTOM (ABILITY_MYTHICAL_ARROWS + 1)
+#define ABILITIES_COUNT_CUSTOM (ABILITY_LAWNMOWER + 1)
 
 #define ABILITIES_COUNT ABILITIES_COUNT_CUSTOM
 

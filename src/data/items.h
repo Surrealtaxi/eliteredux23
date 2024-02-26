@@ -5756,6 +5756,18 @@ const struct Item gItems[] =
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },
 
+    [ITEM_FROST_ORB] =
+    {
+        .name = _("Frost Orb"),
+        .itemId = ITEM_FROST_ORB,
+        .price = 4000,
+        .holdEffect = HOLD_EFFECT_FROST_ORB,
+        .description = sFrostOrbDesc,
+        .pocket = POCKET_BATTLE,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+    },
+
     [ITEM_QUICK_POWDER] =
     {
         .name = _("Quick Powder"),
@@ -6963,6 +6975,19 @@ const struct Item gItems[] =
         .holdEffect = HOLD_EFFECT_ASSAULT_VEST,
         .holdEffectParam = 50,
         .description = sAssaultVestDesc,
+        .pocket = POCKET_BATTLE,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+    },
+
+    [ITEM_PHYSICAL_VEST] =
+    {
+        .name = _("Physical Vest"),
+        .itemId = ITEM_PHYSICAL_VEST,
+        .price = 1000,
+        .holdEffect = HOLD_EFFECT_PHYSICAL_VEST,
+        .holdEffectParam = 50,
+        .description = sPhysicalVestDesc,
         .pocket = POCKET_BATTLE,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
@@ -9323,11 +9348,11 @@ const struct Item gItems[] =
 
     [ITEM_ABILITY_SHIELD] =
     {
-        .name = _("AbilityShield"),
+        .name = _("Ability Shield"),
         .price = 20000,
         .holdEffect = HOLD_EFFECT_ABILITY_SHIELD,
         .description = sAbilityShieldDesc,
-        .pocket = POCKET_ITEMS,
+        .pocket = POCKET_BATTLE,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },
@@ -9338,18 +9363,18 @@ const struct Item gItems[] =
         .price = 30000,
         .holdEffect = HOLD_EFFECT_CLEAR_AMULET,
         .description = sClearAmuletDesc,
-        .pocket = POCKET_ITEMS,
+        .pocket = POCKET_BATTLE,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },
 
     [ITEM_PUNCHING_GLOVE] =
     {
-        .name = _("PunchingGlove"),
+        .name = _("Punching Glove"),
         .price = 15000,
         .holdEffect = HOLD_EFFECT_PUNCHING_GLOVE,
         .description = sPunchingGloveDesc,
-        .pocket = POCKET_ITEMS,
+        .pocket = POCKET_BATTLE,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },
@@ -9360,7 +9385,7 @@ const struct Item gItems[] =
         .price = 20000,
         .holdEffect = HOLD_EFFECT_COVERT_CLOAK,
         .description = sCovertCloakDesc,
-        .pocket = POCKET_ITEMS,
+        .pocket = POCKET_BATTLE,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },
@@ -9371,18 +9396,18 @@ const struct Item gItems[] =
         .price = 20000,
         .holdEffect = HOLD_EFFECT_LOADED_DICE,
         .description = sLoadedDiceDesc,
-        .pocket = POCKET_ITEMS,
+        .pocket = POCKET_BATTLE,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },
 
     [ITEM_BOOSTER_ENERGY] =
     {
-        .name = _("BoosterEnergy"),
+        .name = _("Booster Energy"),
         .price = 0,
         .holdEffect = HOLD_EFFECT_BOOSTER_ENERGY,
         .description = sBoosterEnergyDesc,
-        .pocket = POCKET_ITEMS,
+        .pocket = POCKET_BATTLE,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },
@@ -9393,7 +9418,7 @@ const struct Item gItems[] =
         .price = 30000,
         .holdEffect = HOLD_EFFECT_MIRROR_HERB,
         .description = sMirrorHerbDesc,
-        .pocket = POCKET_ITEMS,
+        .pocket = POCKET_BATTLE,
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },

@@ -1292,9 +1292,9 @@ bool32 DoesBattlerIgnoreAbilityChecks(u8 battler, u8 battlerDef, u16 move)
 {
     u32 i;
     u16 atkAbility = gBattleMons[battler].ability;
-    
-    //if (AI_THINKING_STRUCT->aiFlags & AI_FLAG_NEGATE_UNAWARE)
-    //    return FALSE;   // AI handicap flag: doesn't understand ability suppression concept
+
+    if (battler == battlerDef)
+        return FALSE;
 
     if (DoesBattlerHaveAbilityShield(battlerDef))
         return FALSE;
@@ -1478,7 +1478,7 @@ bool32 IsMoveEncouragedToHit(u8 battlerAtk, u8 battlerDef, u16 move)
     //TODO - anticipate protect move?
         
     // always hits
-    if (gStatuses3[battlerDef] & STATUS3_ALWAYS_HITS || gDisableStructs[battlerDef].battlerWithSureHit == battlerAtk)
+    if (gStatuses3[battlerDef] & STATUS3_ALWAYS_HITS || gVolatileStructs[battlerDef].battlerWithSureHit == battlerAtk)
         return TRUE;
         
     // discouraged from hitting
@@ -1605,7 +1605,7 @@ void ProtectChecks(u8 battlerAtk, u8 battlerDef, u16 move, u16 predictedMove, s1
     // TODO more sophisticated logic
     u16 predictedEffect = gBattleMoves[predictedMove].effect;
     u8 defAbility = gBattleMons[battlerDef].ability;
-    u32 uses = gDisableStructs[battlerAtk].protectUses;
+    u32 uses = gVolatileStructs[battlerAtk].protectUses;
     
     /*if (GetMoveResultFlags(predictedMove) & (MOVE_RESULT_NO_EFFECT | MOVE_RESULT_MISSED))
     {
@@ -2842,7 +2842,7 @@ bool32 IsBattlerIncapacitated(u8 battler, u16 ability)
     if (gBattleMons[battler].status1 & STATUS1_SLEEP)
         return TRUE;
 
-    if (gBattleMons[battler].status2 & STATUS2_RECHARGE || (BATTLER_HAS_ABILITY_FAST_AI(battler, ABILITY_TRUANT) && gDisableStructs[battler].truantCounter != 0))
+    if (gBattleMons[battler].status2 & STATUS2_RECHARGE || (BATTLER_HAS_ABILITY_FAST_AI(battler, ABILITY_TRUANT) && gVolatileStructs[battler].truantCounter != 0))
         return TRUE;
 
     return FALSE;
@@ -2918,7 +2918,22 @@ bool32 ShouldBurnSelf(u8 battler)
          HasMoveEffect(battler, EFFECT_FACADE)              ||
          HasMoveEffect(battler, EFFECT_PSYCHO_SHIFT)        ||
         (BATTLER_HAS_ABILITY_FAST_AI(battler, ABILITY_FLARE_BOOST) && HasMoveWithSplit(battler, SPLIT_SPECIAL)) ||
-        (BATTLER_HAS_ABILITY_FAST_AI(battler, ABILITY_GUTS)        && HasMoveWithSplit(battler, SPLIT_PHYSICAL))))
+        (BATTLER_HAS_ABILITY_FAST_AI(battler, ABILITY_GUTS)        && HasMoveWithSplit(battler, SPLIT_PHYSICAL)) ||
+        (BATTLER_HAS_ABILITY_FAST_AI(battler, ABILITY_DETERMINATION)        && HasMoveWithSplit(battler, SPLIT_SPECIAL))))
+        return TRUE;
+    else
+        return FALSE;
+}
+
+bool32 ShouldFrostbiteSelf(u8 battler)
+{
+    if (CanGetFrostbite(battler) && 
+        (BATTLER_HAS_ABILITY_FAST_AI(battler, ABILITY_QUICK_FEET)   ||
+         BATTLER_HAS_ABILITY_FAST_AI(battler, ABILITY_MAGIC_GUARD)  ||
+         HasMoveEffect(battler, EFFECT_FACADE)              ||
+         HasMoveEffect(battler, EFFECT_PSYCHO_SHIFT)        ||
+        (BATTLER_HAS_ABILITY_FAST_AI(battler, ABILITY_GUTS)        && HasMoveWithSplit(battler, SPLIT_PHYSICAL)) ||
+        (BATTLER_HAS_ABILITY_FAST_AI(battler, ABILITY_DETERMINATION)        && HasMoveWithSplit(battler, SPLIT_SPECIAL))))
         return TRUE;
     else
         return FALSE;
@@ -3009,7 +3024,7 @@ bool32 ShouldFakeOut(u8 battlerAtk, u8 battlerDef, u16 move)
     if (AI_GetHoldEffect(battlerAtk) == HOLD_EFFECT_CHOICE_BAND && CountUsablePartyMons(battlerAtk) == 0)
         return FALSE;   // don't lock attacker into fake out if can't switch out
     
-    if (gDisableStructs[battlerAtk].isFirstTurn
+    if (gVolatileStructs[battlerAtk].isFirstTurn
       && ShouldTryToFlinch(battlerAtk, battlerDef, AI_DATA->abilities[battlerAtk], AI_DATA->abilities[battlerDef], move)
       && !DoesSubstituteBlockMove(battlerAtk, battlerDef, move))
         return TRUE;
@@ -3053,6 +3068,9 @@ bool32 AnyPartyMemberStatused(u8 battlerId, bool32 checkSoundproof)
             continue;
 
         if (checkSoundproof && GetMonAbility(&party[i]) == ABILITY_NOISE_CANCEL)
+            continue;
+
+        if (checkSoundproof && GetMonAbility(&party[i]) == ABILITY_PARROTING)
             continue;
 
         if (GetMonData(&party[i], MON_DATA_STATUS) != STATUS1_NONE)

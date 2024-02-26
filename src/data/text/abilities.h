@@ -521,7 +521,7 @@ static const u8 sAbilityWebSpinnerDescription[] = _("Uses String Shot\non switch
 static const u8 sAbilityShowdownModeDescription[] = _("Ambush + Violent Rush.");
 static const u8 sAbilitySeedSowerDescription[] = _("Sets Grassy Terrain and\nLeech Seed when hit.");
 static const u8 sAbilityAirborneDescription[] = _("Boosts own and ally's\nFlying moves by 30%.");
-static const u8 sAbilityParrotingDescription[] = _("Placeholder");
+static const u8 sAbilityParrotingDescription[] = _("Copies sound moves used by\nothers. Immune to sound.");
 static const u8 sAbilityBlockOnEntryDescription[] = _("Prevents opposing pokemon\nfrom fleeing on entry.");
 static const u8 sAbilityPurifyingSaltDescription[] = _("Immune to status conditions.\nTake half damage from Ghost.");
 static const u8 sAbilityProtosynthesisDescription[] = _("Boosts highest stat in Sun\nor with Booster Energy.");
@@ -539,6 +539,7 @@ static const u8 sAbilityGuiltTripDescription[] = _("Sharply lowers attacker's At
 static const u8 sAbilityWaterGaleWingsDescription[] = _("Water moves get +1 priority.\nRequires full HP.");
 static const u8 sAbilityZeroToHeroDescription[] = _("Changes forms after\nswitching out.");
 static const u8 sAbilityCostarDescription[] = _("Copies its ally's stat changes\non switch-in.");
+static const u8 sAbilityCommanderDescription[] = _("Placeholder");
 static const u8 sAbilityEjectPackAbilityDescription[] = _("Flees when stats are lowered.");
 static const u8 sAbilityVengefulSpiritDescription[] = _("Haunted Spirit + Vengeance.");
 static const u8 sAbilityCudChewDescription[] = _("Eats berries again at the\nend of the next turn.");
@@ -572,6 +573,7 @@ static const u8 sAbilityMaliciousDescription[] = _("Lowers the foe's highest\nAt
 static const u8 sAbilityDeadPowerDescription[] = _("1.5x Attack boost. 20% chance\nto curse on contact moves.");
 static const u8 sAbilityBrawlingWyvernDescription[] = _("Dragon type moves become\npunching moves.");
 static const u8 sAbilityMythicalArrowsDescription[] = _("Arrow moves do special damage\nand deal 30% more damage.");
+static const u8 sAbilityLawnmowerDescription[] = _("Removes terrain on switch-in.\nStat up if terrain removed.");
 
 const u8 gAbilityNames[ABILITIES_COUNT][ABILITY_NAME_LENGTH + 1] =
 {
@@ -1177,6 +1179,7 @@ const u8 gAbilityNames[ABILITIES_COUNT][ABILITY_NAME_LENGTH + 1] =
     [ABILITY_DEAD_POWER] = _("Dead Power"),
     [ABILITY_BRAWLING_WYVERN] = _("Brawling Wyvern"),
     [ABILITY_MYTHICAL_ARROWS] = _("Mythical Arrows"),
+    [ABILITY_LAWNMOWER] = _("Lawnmower"),
 };
 
 const u8 *const gAbilityDescriptionPointers[ABILITIES_COUNT] =
@@ -1744,7 +1747,7 @@ const u8 *const gAbilityDescriptionPointers[ABILITIES_COUNT] =
     [ABILITY_WATER_GALE_WINGS] = sAbilityWaterGaleWingsDescription,
     [ABILITY_ZERO_TO_HERO] = sAbilityZeroToHeroDescription,
     [ABILITY_COSTAR] = sAbilityCostarDescription,
-    [ABILITY_COMMANDER] = sAbilityParrotingDescription,
+    [ABILITY_COMMANDER] = sAbilityCommanderDescription,
     [ABILITY_EJECT_PACK_ABILITY] = sAbilityEjectPackAbilityDescription,
     [ABILITY_VENGEFUL_SPIRIT] = sAbilityVengefulSpiritDescription,
     [ABILITY_CUD_CHEW] = sAbilityCudChewDescription,
@@ -1783,4 +1786,5 @@ const u8 *const gAbilityDescriptionPointers[ABILITIES_COUNT] =
     [ABILITY_DEAD_POWER] = sAbilityDeadPowerDescription,
     [ABILITY_BRAWLING_WYVERN] = sAbilityBrawlingWyvernDescription,
     [ABILITY_MYTHICAL_ARROWS] = sAbilityMythicalArrowsDescription,
+    [ABILITY_LAWNMOWER] = sAbilityLawnmowerDescription,
 };
