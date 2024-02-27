@@ -9874,10 +9874,10 @@ u16 GetRandomPokemonFromSpecies(u16 basespecies){
     if(gSaveBlock2Ptr->encounterRandomizedMode == TRUE && basespecies != SPECIES_NONE){
         if(gSaveBlock2Ptr->encounterRandomizedLegendaryMode == FALSE){
             //Legendary Mons Enabled
+            rndSeed = rndSeed ^ basespecies;
             do{
-                rndSeed = rndSeed + i;
-                species = (basespecies * rndSeed) % SPECIES_CALYREX;
-                i++;
+                rndSeed = ISO_RANDOMIZE1(rndSeed) >> 16;
+                species = rndSeed % SPECIES_CALYREX;
             }
             while(tier != gBaseStats[species].tier);
         }
